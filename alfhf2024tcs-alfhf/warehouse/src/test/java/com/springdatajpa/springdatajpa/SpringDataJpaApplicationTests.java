@@ -1,13 +1,13 @@
-package hu.bme.aut.warehouse;
+package com.springdatajpa.springdatajpa;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class WarehouseApplicationTests {
+class SpringDataJpaApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+	@Test
+	void contextLoads() {
+	}
 
 }
