@@ -50,28 +50,28 @@ public class Basket {
      * If the product is already in the basket, it updates the quantity.
      *
      * @param productId the ID of the product to add or update
+     * @param price the price of a piece
      * @param quantity the quantity of the product
      */
-    public void addProduct(Long productId, Integer quantity) {
-        if (products.containsKey(productId)) {
-            products.put(productId, products.get(productId) + quantity);
-            log.info("Quantity updated for product {}: {}", productId, products.get(productId));
-        } else {
-            products.put(productId, quantity);
-            log.info("Product added {} with quantity {}", productId, quantity);
-        }
+    public void addProduct(Long productId, Double price, Integer quantity) {
+        Integer currentQuantity = products.getOrDefault(productId, 0);
+        products.put(productId, currentQuantity + quantity);
+        subTotalAmount += quantity * price;
+        log.info("Updated product {} in basket {}, new quantity: {}, new subtotal: {}", productId, basketId, products.get(productId), subTotalAmount);
     }
 
     /**
      * Removes a product from the basket.
      *
      * @param productId the ID of the product to remove
+     * @param price the price of a piece
      * @throws IllegalArgumentException if the product id does not exist
      */
-    public void removeProduct(Long productId) {
-        if (products.containsKey(productId)) {
-            products.remove(productId);
-            log.info("Removed product {}", productId);
+    public void removeProduct(Long productId, Double price) {
+        Integer quantity = products.remove(productId);
+        if (quantity != null) {
+            subTotalAmount -= quantity * price;
+            log.info("Removed product {} from basket {}, quantity was {}, new subtotal: {}", productId, basketId, quantity, subTotalAmount);
         } else {
             log.error("Attempted to remove non-existing product {}", productId);
             throw new IllegalArgumentException("Product not found.");
