@@ -1,8 +1,9 @@
 package entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
-
+@Data
 @Entity
 public class Product {
     @Id

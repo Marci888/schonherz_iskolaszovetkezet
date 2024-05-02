@@ -23,4 +23,7 @@ public class ProductService {
     public List<Product> getProductsByCategory(String categoryName) {
         return productRepository.findByCategoryName(categoryName);
     }
+    public List<Product> getProductsByPrefix(String prefix) {
+        return productRepository.findByPrefix(prefix);
+    }
 }
