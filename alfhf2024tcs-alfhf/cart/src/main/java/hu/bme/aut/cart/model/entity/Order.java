@@ -1,5 +1,6 @@
 package hu.bme.aut.cart.model.entity;
 
+import hu.bme.aut.cart.model.enums.BasketStatus;
 import hu.bme.aut.cart.model.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -53,6 +54,7 @@ public class Order {
 
         if (basket.getOrder() != this) {
             basket.setOrder(this);
+            basket.setBasketStatus(BasketStatus.CHECKED_OUT);
             log.info("Linking back from Basket ID {} to Order ID {}", basket.getBasketId(), orderId);
         }
     }
