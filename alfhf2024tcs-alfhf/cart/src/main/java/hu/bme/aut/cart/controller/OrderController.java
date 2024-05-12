@@ -26,7 +26,7 @@ public class OrderController {
      * @return A list of OrderDTOs representing the user's orders.
      */
     @GetMapping
-    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@RequestHeader("User-ID") Long userId) {
+    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@RequestHeader("User-Id") Long userId) {
         log.debug("Received request to fetch orders for user ID {}", userId);
         try {
             List<OrderDTO> orders = orderService.getOrdersByUserId(userId);
