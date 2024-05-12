@@ -1,4 +1,4 @@
-package hu.bme.aut.cart.configuration;
+package hu.bme.aut.api.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

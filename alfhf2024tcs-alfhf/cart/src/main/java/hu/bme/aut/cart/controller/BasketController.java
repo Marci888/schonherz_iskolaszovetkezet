@@ -61,7 +61,7 @@ public class BasketController {
      * @return a ResponseEntity containing the updated BasketDTO or an error response.
      */
     @DeleteMapping("/{productId}/{quantity}")
-    public ResponseEntity<?> removeFromBasket(@RequestHeader("user-id") Long userId,
+    public ResponseEntity<?> removeFromBasket(@RequestHeader("User-Id") Long userId,
                                               @PathVariable Long productId,
                                               @PathVariable Integer quantity) {
         log.debug("Removing product {} with quantity {} from user {}'s basket", productId, quantity, userId);
