@@ -3,7 +3,6 @@ package hu.bme.aut.core.model;
 import hu.bme.aut.core.model.UserBankCard;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,8 +33,6 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-
-
     /**
      * A set of tokens associated with the user for authentication purposes.
      * It's a lazy-loaded one-to-many relationship.
@@ -49,8 +46,6 @@ public class User {
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserBankCard> bankCards;
-
-
 
     /**
      * Adds a token to the user's set of tokens.
@@ -88,4 +83,3 @@ public class User {
         bankCard.setUser(this);
     }
 }
-

@@ -35,7 +35,6 @@ public class Product {
     )
     private String name;
     private Double price;
-
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;

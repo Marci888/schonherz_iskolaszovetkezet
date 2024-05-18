@@ -2,7 +2,7 @@ package hu.bme.aut.core.service;
 
 import hu.bme.aut.core.exception.CoreServiceException;
 import hu.bme.aut.core.model.UserToken;
-import hu.bme.aut.core.repository.UserRepository;
+import hu.bme.aut.core.repository.UserValidationRepository;
 import hu.bme.aut.core.repository.UserTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.StringTokenizer;
 @Service
 @RequiredArgsConstructor
 public class UserTokenValidationService {
-    private final UserRepository userRepository;
+    private final UserValidationRepository userRepository;
     private final UserTokenRepository userTokenRepository;
 
     /**

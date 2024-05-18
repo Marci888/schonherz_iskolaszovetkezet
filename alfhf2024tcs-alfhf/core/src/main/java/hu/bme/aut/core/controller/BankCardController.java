@@ -33,6 +33,7 @@ public class BankCardController {
     @GetMapping("/balance/{cardId}/{price}")
     public ResponseEntity<CoreValidationResponseDTO> checkBalance(
             @RequestHeader("User-Token") String token,
+            @PathVariable Long userId,
             @PathVariable String cardId,
             @PathVariable int price) {
         log.info("Request to validate card and check balance for card ID: {} and price: {}", cardId, price);
