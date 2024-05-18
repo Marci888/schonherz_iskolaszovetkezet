@@ -1,0 +1,25 @@
+package com.springdatajpa.springdatajpa.repository;
+
+import com.springdatajpa.springdatajpa.entity.Product;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    List<Product> findByCategoryName(String categoryName);
+    List<Product> findByCategoryId(Long id);
+
+    List<Product> findByNameStartingWith(String prefix);
+    List<Product> findByNameContaining(String name);
+    @Modifying
+    @Transactional
+    @Query(
+            value = "update product set price = ?1 where name = ?2",
+            nativeQuery = true
+    )
+    int updateProductPriceByName(Double price, String name);
+}
