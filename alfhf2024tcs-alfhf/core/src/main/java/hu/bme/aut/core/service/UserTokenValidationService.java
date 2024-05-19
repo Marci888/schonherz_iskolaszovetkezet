@@ -20,7 +20,6 @@ import java.util.StringTokenizer;
 @Service
 @RequiredArgsConstructor
 public class UserTokenValidationService {
-    private final UserRepository userRepository;
     private final UserTokenRepository userTokenRepository;
 
     /**
