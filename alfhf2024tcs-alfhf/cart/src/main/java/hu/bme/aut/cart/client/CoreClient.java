@@ -6,7 +6,7 @@ import hu.bme.aut.cart.dto.CoreValidationResponseDTO;
 import hu.bme.aut.cart.exception.ServiceCommunicationException;
 import hu.bme.aut.cart.exception.UserTokenException;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

@@ -4,7 +4,7 @@ import hu.bme.aut.api.dto.ApiResponse;
 import hu.bme.aut.api.dto.ErrorResponseDTO;
 import hu.bme.aut.api.dto.OrderDTO;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
