@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -16,36 +20,39 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Service class for managing orders within the API module.
+ */
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final RestTemplate restTemplate;
     private final ModelMapper modelMapper;
-    private String cartServiceBaseUrl;
 
     @Value("${cart.service.url}")
-    public void setCartServiceBaseUrl(String url) {
-        this.cartServiceBaseUrl = url;
-    }
+    private String cartServiceBaseUrl;
 
     /**
-     * Retrieves all orders associated with a specific user ID asynchronously.
+     * Retrieves all orders associated with a specific user token asynchronously.
      * Handles both successful and error responses from the CART service.
      *
-     * @param userId The user ID for which to fetch orders.
+     * @param userToken The user token for which to fetch orders.
      * @return CompletableFuture of ApiResponse containing a list of OrderDTOs or an error message.
      */
     @Async
-    public CompletableFuture<ApiResponse<List<OrderDTO>>> getOrdersByUserId(Long userId) {
-        String url = cartServiceBaseUrl + "/orders?userId=" + userId;
-        log.debug("Requesting orders for user ID: {}", userId);
+    public CompletableFuture<ApiResponse<List<OrderDTO>>> getOrdersByUserToken(String userToken) {
+        String url = cartServiceBaseUrl + "/orders";
+        log.debug("Requesting orders for user token: {}", userToken);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Token", userToken);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                List<OrderDTO> orders = modelMapper.map(response.getBody(), List.class);
-                log.info("Successfully retrieved orders for user ID: {}", userId);
+                List<OrderDTO> orders = modelMapper.map(response.getBody(), new TypeToken<List<OrderDTO>>() {}.getType());
+                log.info("Successfully retrieved orders for user token: {}", userToken);
                 return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, orders));
             } else {
                 ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
@@ -54,7 +61,7 @@ public class OrderService {
             }
         } catch (HttpClientErrorException ex) {
             ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
-            log.error("HTTP error while fetching orders for user ID: {}", userId, ex);
+            log.error("HTTP error while fetching orders for user token: {}", userToken, ex);
             return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
         }
     }

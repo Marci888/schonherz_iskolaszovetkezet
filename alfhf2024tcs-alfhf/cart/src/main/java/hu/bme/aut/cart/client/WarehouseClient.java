@@ -26,7 +26,7 @@ public class WarehouseClient {
     private final RestTemplate restTemplate;
 
     @Value("${warehouse.service.url}")
-    private final String warehouseServiceUrl;
+    private String warehouseServiceUrl;
 
     /**
      * Fetch product details from the WAREHOUSE service.

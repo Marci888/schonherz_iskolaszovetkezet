@@ -50,24 +50,24 @@ public class BasketController {
     /**
      * Adds a product to the active basket for a given user.
      *
-     * @param userId the user ID from the request header.
+     * @param userToken the user token from the request header.
      * @param productId the product ID to add.
      * @param quantity the quantity of the product to add.
      * @return ResponseEntity containing ApiResponse with the updated BasketDTO.
      */
     @PutMapping("/{productId}/{quantity}")
-    public ResponseEntity<ApiResponse<BasketDTO>> addToBasket(@RequestHeader("User-Id") Long userId,
+    public ResponseEntity<ApiResponse<BasketDTO>> addToBasket(@RequestHeader("User-Token") String userToken,
                                                               @PathVariable Long productId,
                                                               @PathVariable Integer quantity) {
-        log.info("Adding product {} with quantity {} to basket for user {}", productId, quantity, userId);
+        log.info("Adding product {} with quantity {} to basket.", productId, quantity);
         try {
-            CompletableFuture<ApiResponse<BasketDTO>> future = basketService.addToBasket(userId, productId, quantity);
+            CompletableFuture<ApiResponse<BasketDTO>> future = basketService.addToBasket(userToken, productId, quantity);
             ApiResponse<BasketDTO> response = future.get();
-            log.debug("Product added successfully to basket for user {}", userId);
+            log.debug("Product added successfully to basket.");
             return ResponseEntity.ok(response);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            log.error("Failed to add product {} to basket for user {}: {}", productId, userId, e.getMessage());
+            log.error("Failed to add product {} to basket: {}", productId, e.getMessage());
             ApiResponse<BasketDTO> errorResponse = ApiResponse.<BasketDTO>builder()
                     .success(false)
                     .errorMessage("Failed to add product to basket")
@@ -81,24 +81,24 @@ public class BasketController {
     /**
      * Removes a product from the active basket for a given user.
      *
-     * @param userId the user ID from the request header.
+     * @param userToken the user token from the request header.
      * @param productId the product ID to remove.
      * @param quantity the quantity of the product to remove.
      * @return ResponseEntity containing ApiResponse with the updated BasketDTO.
      */
     @DeleteMapping("/{productId}/{quantity}")
-    public ResponseEntity<ApiResponse<BasketDTO>> removeFromBasket(@RequestHeader("User-Id") Long userId,
+    public ResponseEntity<ApiResponse<BasketDTO>> removeFromBasket(@RequestHeader("User-Token") String userToken,
                                                                    @PathVariable Long productId,
                                                                    @PathVariable Integer quantity) {
-        log.info("Removing product {} with quantity {} from basket for user {}", productId, quantity, userId);
+        log.info("Removing product {} with quantity {} from basket.", productId, quantity);
         try {
-            CompletableFuture<ApiResponse<BasketDTO>> future = basketService.removeFromBasket(userId, productId, quantity);
+            CompletableFuture<ApiResponse<BasketDTO>> future = basketService.removeFromBasket(userToken, productId, quantity);
             ApiResponse<BasketDTO> response = future.get();
-            log.debug("Product removed successfully from basket for user {}", userId);
+            log.debug("Product removed successfully from basket.");
             return ResponseEntity.ok(response);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            log.error("Failed to remove product {} from basket for user {}: {}", productId, userId, e.getMessage());
+            log.error("Failed to remove product {} from basket: {}", productId, e.getMessage());
             ApiResponse<BasketDTO> errorResponse = ApiResponse.<BasketDTO>builder()
                     .success(false)
                     .errorMessage("Failed to remove product from basket")
