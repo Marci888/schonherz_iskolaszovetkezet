@@ -11,33 +11,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(
-        uniqueConstraints = @UniqueConstraint(
-                name = "name_unique",
-                columnNames = "name"
-        )
-)
+@Table(uniqueConstraints = @UniqueConstraint(name = "name_unique", columnNames = "name"))
 public class Product {
     @Id
-    @SequenceGenerator(
-            name = "product_sequence",
-            sequenceName = "product_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "product_sequence"
-    )
+    @SequenceGenerator(name = "product_sequence", sequenceName = "product_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
     private Long id;
-    @Column(
-            name ="",
-            nullable = false
-    )
+
+    @Column(name ="name", nullable = false)
     private String name;
+
     private Double price;
+
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
-
-    // Getters and setters
 }
