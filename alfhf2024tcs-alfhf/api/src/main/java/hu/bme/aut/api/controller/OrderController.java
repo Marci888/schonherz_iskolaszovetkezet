@@ -25,20 +25,20 @@ public class OrderController {
      * Retrieves all orders associated with a specific user.
      * The user ID is extracted from the request header.
      *
-     * @param userId The user ID from the request header.
+     * @param userToken The user token from the request header.
      * @return ResponseEntity containing ApiResponse with a list of OrderDTOs.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderDTO>>> getOrdersByUserId(@RequestHeader("User-Id") Long userId) {
-        log.info("Received request to fetch orders for user ID {}", userId);
+    public ResponseEntity<ApiResponse<List<OrderDTO>>> getOrdersByUserId(@RequestHeader("User-Token") String userToken) {
+        log.info("Received request to fetch orders");
         try {
-            CompletableFuture<ApiResponse<List<OrderDTO>>> future = orderService.getOrdersByUserId(userId);
+            CompletableFuture<ApiResponse<List<OrderDTO>>> future = orderService.getOrdersByUserToken(userToken);
             ApiResponse<List<OrderDTO>> response = future.get();
-            log.debug("Successfully retrieved orders for user ID {}", userId);
+            log.debug("Successfully retrieved orders.");
             return ResponseEntity.ok(response);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            log.error("Error fetching orders for user ID {}: {}", userId, e.getMessage());
+            log.error("Error fetching orders: {}", e.getMessage());
             ApiResponse<List<OrderDTO>> errorResponse = ApiResponse.<List<OrderDTO>>builder()
                     .success(false)
                     .errorMessage("Internal server error")

@@ -4,6 +4,7 @@ import hu.bme.aut.core.dto.CoreValidationResponseDTO;
 import hu.bme.aut.core.service.UserTokenValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,8 +31,14 @@ public class TokenValidationController {
     @GetMapping
     public ResponseEntity<CoreValidationResponseDTO> validateToken(@RequestHeader("User-Token") String token) {
         log.info("Validating token for user authentication.");
-        tokenValidationService.getUserIdFromToken(token);
-        log.info("Token validation successful.");
-        return ResponseEntity.ok(new CoreValidationResponseDTO(true, null, null));
+        Long userId = tokenValidationService.getUserIdFromToken(token);
+        log.info("Token validation successful. User ID: {}", userId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("User-ID", userId.toString());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(new CoreValidationResponseDTO(true, null, null));
     }
 }

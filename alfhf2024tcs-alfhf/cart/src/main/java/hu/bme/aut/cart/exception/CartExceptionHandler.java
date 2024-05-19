@@ -61,4 +61,22 @@ public class CartExceptionHandler {
         log.error("Order not found: {}", ex.getMessage());
         return new ResponseEntity<>(new ErrorResponseDTO(false, ex.getMessage(), ex.getErrorCode()), HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(CardNotBelongToUserException.class)
+    public ResponseEntity<ErrorResponseDTO> handleCardNotBelongToUserException(CardNotBelongToUserException ex) {
+        log.error("Card validation error: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponseDTO(false, ex.getMessage(), ex.getErrorCode()), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInsufficientFundsException(InsufficientFundsException ex) {
+        log.error("Insufficient funds: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponseDTO(false, ex.getMessage(), ex.getErrorCode()), HttpStatus.PAYMENT_REQUIRED);
+    }
+
+    @ExceptionHandler(UserTokenException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserTokenException(UserTokenException ex) {
+        log.error("User token error: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponseDTO(false, ex.getMessage(), ex.getErrorCode()), HttpStatus.UNAUTHORIZED);
+    }
 }

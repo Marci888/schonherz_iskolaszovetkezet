@@ -2,12 +2,12 @@ package hu.bme.aut.core.service;
 
 import hu.bme.aut.core.exception.CoreServiceException;
 import hu.bme.aut.core.model.UserToken;
-import hu.bme.aut.core.repository.UserValidationRepository;
 import hu.bme.aut.core.repository.UserTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import hu.bme.aut.core.repository.UserRepository;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -20,7 +20,7 @@ import java.util.StringTokenizer;
 @Service
 @RequiredArgsConstructor
 public class UserTokenValidationService {
-    private final UserValidationRepository userRepository;
+    private final UserRepository userRepository;
     private final UserTokenRepository userTokenRepository;
 
     /**

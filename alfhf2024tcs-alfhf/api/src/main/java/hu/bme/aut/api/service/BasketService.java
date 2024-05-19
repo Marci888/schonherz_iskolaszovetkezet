@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -15,19 +18,19 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Service class for managing baskets within the API module.
+ */
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class BasketService {
 
     private final RestTemplate restTemplate;
     private final ModelMapper modelMapper;
-    private String cartServiceBaseUrl;
 
     @Value("${cart.service.url}")
-    public void setCartServiceBaseUrl(String url) {
-        this.cartServiceBaseUrl = url + "/basket/";
-    }
+    private String cartServiceBaseUrl;
 
     /**
      * Retrieves a basket by its ID asynchronously.
@@ -60,20 +63,23 @@ public class BasketService {
     /**
      * Adds a product to an active basket for a given user asynchronously.
      *
-     * @param userId    the user ID.
+     * @param userToken the user token.
      * @param productId the product ID to add.
      * @param quantity  the quantity of the product to add.
      * @return CompletableFuture of ApiResponse containing the updated BasketDTO.
      */
     @Async
-    public CompletableFuture<ApiResponse<BasketDTO>> addToBasket(Long userId, Long productId, Integer quantity) {
+    public CompletableFuture<ApiResponse<BasketDTO>> addToBasket(String userToken, Long productId, Integer quantity) {
         String url = cartServiceBaseUrl + productId + "/" + quantity;
-        log.debug("Adding product ID {} with quantity {} to basket for user {}", productId, quantity, userId);
+        log.debug("Adding product ID {} with quantity {} to basket for user token {}", productId, quantity, userToken);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Token", userToken);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, null, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 BasketDTO basketDTO = modelMapper.map(response.getBody(), BasketDTO.class);
-                log.info("Product added successfully to basket for user {}", userId);
+                log.info("Product added successfully to basket for user token {}", userToken);
                 return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, basketDTO));
             } else {
                 ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
@@ -90,21 +96,24 @@ public class BasketService {
     /**
      * Removes a product from an active basket for a given user asynchronously.
      *
-     * @param userId    the user ID.
+     * @param userToken the user token.
      * @param productId the product ID to remove.
      * @param quantity  the quantity of the product to remove.
      * @return CompletableFuture of ApiResponse containing the updated BasketDTO.
      */
     @Async
-    public CompletableFuture<ApiResponse<BasketDTO>> removeFromBasket(Long userId, Long productId, Integer quantity) {
+    public CompletableFuture<ApiResponse<BasketDTO>> removeFromBasket(String userToken, Long productId, Integer quantity) {
         String url = cartServiceBaseUrl + productId + "/" + quantity;
-        log.debug("Attempting to remove product ID {} with quantity {} from basket for user {}", productId, quantity, userId);
+        log.debug("Attempting to remove product ID {} with quantity {} from basket for user token {}", productId, quantity, userToken);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Token", userToken);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         try {
-            restTemplate.delete(url);
+            restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Void.class);
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 BasketDTO basketDTO = modelMapper.map(response.getBody(), BasketDTO.class);
-                log.info("Product removed successfully from basket for user {}", userId);
+                log.info("Product removed successfully from basket for user token {}", userToken);
                 return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, basketDTO));
             } else {
                 ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
