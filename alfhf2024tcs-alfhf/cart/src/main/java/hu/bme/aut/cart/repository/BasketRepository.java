@@ -15,4 +15,5 @@ import java.util.Optional;
 public interface BasketRepository extends JpaRepository<Basket, Long> {
 
     Optional<Basket> findByUserIdAndBasketStatus(Long userId, BasketStatus basketStatus);
+
 }

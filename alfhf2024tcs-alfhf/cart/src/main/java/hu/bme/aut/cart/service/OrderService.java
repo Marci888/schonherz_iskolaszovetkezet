@@ -112,7 +112,7 @@ public class OrderService {
      * @param totalAmount The total amount to check against the card balance.
      * @param userToken The user's token for validation.
      */
-    private void validateCard(String cardId, double totalAmount, String userToken) {
+    public void validateCard(String cardId, double totalAmount, String userToken) {
         log.debug("Validating card ID {} for amount {}", cardId, totalAmount);
         CoreValidationResponseDTO response = coreClient.validateCard(userToken, cardId, totalAmount);
         if (!response.isSuccess()) {

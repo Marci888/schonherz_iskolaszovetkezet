@@ -7,9 +7,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import hu.bme.aut.core.repository.UserRepository;
 
 import java.util.Base64;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
@@ -45,7 +45,7 @@ public class UserTokenValidationService {
 
             log.info("User token validated successfully for user ID: {}", userId);
             return userId;
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (IllegalArgumentException | IllegalStateException | NoSuchElementException e) {
             log.error("Invalid token provided: {}", encodedToken);
             throw new CoreServiceException("A felhasználói token nem szerepel.", "10050");
         }

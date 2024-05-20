@@ -6,6 +6,8 @@
       <list>
         <option value="$PROJECT_DIR$/alfhf2024tcs-alfhf/warehouse/pom.xml" />
         <option value="$PROJECT_DIR$/alfhf2024tcs-alfhf/core/pom.xml" />
+        <option value="$PROJECT_DIR$/alfhf2024tcs-alfhf/api/pom.xml" />
+        <option value="$PROJECT_DIR$/alfhf2024tcs-alfhf/cart/pom.xml" />
       </list>
     </option>
   </component>

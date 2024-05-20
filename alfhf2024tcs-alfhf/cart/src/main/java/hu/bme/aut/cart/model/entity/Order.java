@@ -13,7 +13,7 @@ import java.util.Date;
  * Each order is directly linked to a basket which contains the selected products.
  */
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
