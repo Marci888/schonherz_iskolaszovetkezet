@@ -6,6 +6,7 @@ import hu.bme.aut.core.model.UserToken;
 import hu.bme.aut.core.repository.UserBankCardRepository;
 import hu.bme.aut.core.repository.UserRepository;
 import hu.bme.aut.core.repository.UserTokenRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
-
+@Slf4j
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -30,22 +31,24 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Töröljük az összes rekordot
+        log.info("Start from a clean slate");
         userRepository.deleteAll();
         userBankCardRepository.deleteAll();
         userTokenRepository.deleteAll();
 
-        // Példányok létrehozása és hozzáadása az adatbázishoz
+        log.info("Creating new users");
         User user1 = createUser("John Doe", "john@example.com");
         User user2 = createUser("Alice Smith", "alice@example.com");
 
+        log.info("Giving them bank cards");
         UserBankCard card1 = createBankCard("1234567890", "John Doe", "123", 1000.0, "USD", user1);
         UserBankCard card2 = createBankCard("0987654321", "Alice Smith", "456", 2000.0, "EUR", user2);
 
+        log.info("Giving them tokens");
         UserToken token1 = createToken("token123", user1);
         UserToken token2 = createToken("token456", user2);
 
-        // Mentjük az entitásokat
+
         userRepository.save(user1);
         userRepository.save(user2);
 
@@ -54,6 +57,8 @@ public class DataInitializer implements CommandLineRunner {
 
         userTokenRepository.save(token1);
         userTokenRepository.save(token2);
+
+        log.info("Data initialization complete.");
     }
 
     private User createUser(String name, String email) {

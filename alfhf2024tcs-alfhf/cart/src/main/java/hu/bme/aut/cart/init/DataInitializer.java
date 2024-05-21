@@ -28,8 +28,11 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("Initializing data...");
+        log.info("Start from a clean slate");
+        basketRepository.deleteAll();
+        orderRepository.deleteAll();
 
+        log.info("Creating basket and order");
         Basket basket = createBasket();
         Order order = createOrder(basket);
 
