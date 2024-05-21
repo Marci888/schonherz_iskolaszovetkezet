@@ -1,8 +1,8 @@
-package com.springdatajpa.springdatajpa.init;
-import com.springdatajpa.springdatajpa.entity.Category;
-import com.springdatajpa.springdatajpa.entity.Product;
-import com.springdatajpa.springdatajpa.repository.CategoryRepository;
-import com.springdatajpa.springdatajpa.repository.ProductRepository;
+package hu.bme.aut.core.init;
+import hu.bme.aut.core.entity.Category;
+import hu.bme.aut.core.entity.Product;
+import hu.bme.aut.core.repository.CategoryRepository;
+import hu.bme.aut.core.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;

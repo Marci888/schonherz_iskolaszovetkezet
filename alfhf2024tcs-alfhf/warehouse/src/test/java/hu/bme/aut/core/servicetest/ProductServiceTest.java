@@ -1,14 +1,14 @@
-package com.springdatajpa.springdatajpa.servicetest;
+package hu.bme.aut.core.servicetest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.springdatajpa.springdatajpa.entity.Category;
-import com.springdatajpa.springdatajpa.entity.Product;
-import com.springdatajpa.springdatajpa.repository.ProductRepository;
-import com.springdatajpa.springdatajpa.service.ProductService;
+import hu.bme.aut.core.entity.Category;
+import hu.bme.aut.core.entity.Product;
+import hu.bme.aut.core.repository.ProductRepository;
+import hu.bme.aut.core.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

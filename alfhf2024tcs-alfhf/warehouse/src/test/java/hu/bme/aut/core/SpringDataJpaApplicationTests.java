@@ -1,4 +1,4 @@
-package com.springdatajpa.springdatajpa;
+package hu.bme.aut.core;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package com.springdatajpa.springdatajpa.entity;
+package hu.bme.aut.core.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -8,11 +8,10 @@
         <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.springdatajpa</groupId>
-    <artifactId>spring-data-jpa</artifactId>
+    <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>spring-data-jpa</name>
-    <description>Spring Data JPA with Spring Boot</description>
+    <name>core</name>
+    <description>core</description>
     <properties>
         <java.version>17</java.version>
     </properties>

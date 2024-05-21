@@ -1,9 +1,9 @@
-package com.springdatajpa.springdatajpa.service;
+package hu.bme.aut.core.service;
 
-import com.springdatajpa.springdatajpa.entity.Product;
+import hu.bme.aut.core.entity.Product;
+import hu.bme.aut.core.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.springdatajpa.springdatajpa.repository.ProductRepository;
 
 import java.util.List;
 import java.util.Optional;

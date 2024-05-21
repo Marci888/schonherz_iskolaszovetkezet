@@ -8,15 +8,15 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="core" />
-        <module name="spring-data-jpa (1)" />
         <module name="api" />
+        <module name="warehouse" />
         <module name="cart" />
-        <module name="spring-data-jpa (2)" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="spring-data-jpa" target="17" />
-      <module name="warehouse" target="17" />
+      <module name="spring-data-jpa (1)" target="17" />
+      <module name="spring-data-jpa (2)" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

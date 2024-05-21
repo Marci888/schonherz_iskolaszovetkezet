@@ -1,9 +1,9 @@
-package com.springdatajpa.springdatajpa.controller;
+package hu.bme.aut.core.controller;
 
-import com.springdatajpa.springdatajpa.entity.Product;
+import hu.bme.aut.core.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.springdatajpa.springdatajpa.service.ProductService;
+import hu.bme.aut.core.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

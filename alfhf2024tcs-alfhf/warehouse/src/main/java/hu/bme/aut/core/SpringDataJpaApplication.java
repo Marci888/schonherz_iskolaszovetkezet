@@ -1,4 +1,4 @@
-package com.springdatajpa.springdatajpa;
+package hu.bme.aut.core;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

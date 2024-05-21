@@ -1,6 +1,6 @@
-package com.springdatajpa.springdatajpa.repository;
+package hu.bme.aut.core.repository;
 
-import com.springdatajpa.springdatajpa.entity.Product;
+import hu.bme.aut.core.entity.Product;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
