@@ -9,6 +9,7 @@ import hu.bme.aut.cart.model.entity.Basket;
 import hu.bme.aut.cart.model.enums.BasketStatus;
 import hu.bme.aut.cart.repository.BasketRepository;
 import hu.bme.aut.cart.service.BasketService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 class BasketServiceTest {
 
@@ -127,7 +129,7 @@ class BasketServiceTest {
 
         // Act
         BasketDTO result = basketService.saveAndConvertBasket(basket);
-
+        
         // Assert
         assertNotNull(result);
         verify(basketRepository, times(1)).save(any(Basket.class));
@@ -164,11 +166,5 @@ class BasketServiceTest {
         // Act & Assert
         assertThrows(BasketNotFoundException.class, () -> basketService.findBasketById(1L));
     }
-
-
-
-
-
-
 
 }
