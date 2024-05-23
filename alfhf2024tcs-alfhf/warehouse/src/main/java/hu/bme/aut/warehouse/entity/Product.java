@@ -1,4 +1,4 @@
-package hu.bme.aut.core.entity;
+package hu.bme.aut.warehouse.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

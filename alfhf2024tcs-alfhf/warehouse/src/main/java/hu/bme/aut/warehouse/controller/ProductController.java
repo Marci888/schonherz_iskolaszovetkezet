@@ -1,9 +1,10 @@
-package hu.bme.aut.core.controller;
+package hu.bme.aut.warehouse.controller;
 
-import hu.bme.aut.core.entity.Product;
+
+import hu.bme.aut.warehouse.entity.Product;
+import hu.bme.aut.warehouse.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import hu.bme.aut.core.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

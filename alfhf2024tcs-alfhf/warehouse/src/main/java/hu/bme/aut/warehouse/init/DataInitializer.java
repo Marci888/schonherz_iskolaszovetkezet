@@ -1,8 +1,9 @@
-package hu.bme.aut.core.init;
-import hu.bme.aut.core.entity.Category;
-import hu.bme.aut.core.entity.Product;
-import hu.bme.aut.core.repository.CategoryRepository;
-import hu.bme.aut.core.repository.ProductRepository;
+package hu.bme.aut.warehouse.init;
+
+import hu.bme.aut.warehouse.entity.Category;
+import hu.bme.aut.warehouse.entity.Product;
+import hu.bme.aut.warehouse.repository.CategoryRepository;
+import hu.bme.aut.warehouse.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
