@@ -1,32 +1,37 @@
 package hu.bme.aut.api.controller;
-import hu.bme.aut.warehouse.entity.Product;
+import hu.bme.aut.api.dto.ApiResponse;
+import hu.bme.aut.api.dto.BasketDTO;
+import hu.bme.aut.api.dto.ProductDTO;
+import hu.bme.aut.api.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import hu.bme.aut.warehouse.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/warehouse")
 public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/products")
     public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProducts() {
-        log.info("Request to retrieve allproducts ");
+        log.info("Request to retrieve all products ");
         try {
             CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getAllProducts();
-            ApiResponse<BasketDTO> response = future.get();
+            ApiResponse<List<ProductDTO>> response = future.get();
             return ResponseEntity.ok(response);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             log.error("Error retrieving products {}", e.getMessage());
-            ApiResponse<BasketDTO> errorResponse = ApiResponse.<List<ProductDTO>>builder()
+            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
                     .success(false)
                     .errorMessage("Internal server error")
                     .errorCode("1500")
@@ -37,43 +42,122 @@ public class ProductController {
     }
 
     @GetMapping("/products/{categoryName}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String categoryName) {
-        List<Product> products = productService.getProductsByCategory(categoryName);
-        log.info("Listing products by {} Category: {}",categoryName,products);
-        return ResponseEntity.ok(products);
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategory(@PathVariable String categoryName) {
+        log.info("Request to retrieve products by {} category ", categoryName);
+        try {
+            CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getProductsByCategory(categoryName);
+            ApiResponse<List<ProductDTO>> response = future.get();
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving products {}", e.getMessage());
+            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ApiResponse<ProductDTO>> getProductById(@PathVariable Long id) {
+        log.info("Request to retrieve product by {} ID ", id);
+        try {
+            CompletableFuture<ApiResponse<ProductDTO>> future = productService.getProductById(id);
+            ApiResponse<ProductDTO> response = future.get();
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving product {}", e.getMessage());
+            ApiResponse<ProductDTO> errorResponse = ApiResponse.<ProductDTO>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
     @GetMapping("/prefix/{prefix}")
-    public ResponseEntity<List<Product>> getProductsByPrefix(@PathVariable String prefix) {
-        List<Product> products = productService.getProductsByPrefix(prefix);
-        log.info("Listing products by {} prefix: {}",prefix,products);
-        return ResponseEntity.ok(products);
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByPrefix(@PathVariable String prefix) {
+        log.info("Request to retrieve products by {} prefix ", prefix);
+        try {
+            CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getProductsByPrefix(prefix);
+            ApiResponse<List<ProductDTO>> response = future.get();
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving products {}", e.getMessage());
+            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
+
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Product>> getProductsByCategoryId(@PathVariable Long categoryId) {
-        List<Product> products = productService.getProductsByCategoryId(categoryId);
-        log.info("Listing products by a Category's ID");
-        if (products.isEmpty()) {
-            log.info("No matching ID found");
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategoryId(@PathVariable Long categoryId) {
+        log.info("Request to retrieve products by {} categoryID ", categoryId);
+        try {
+            CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getProductsByCategoryId(categoryId);
+            ApiResponse<List<ProductDTO>> response = future.get();
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving products {}", e.getMessage());
+            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
-        log.info("The products from the Category: {}",products);
-        return new ResponseEntity<>(products, HttpStatus.OK);
     }
+
     @GetMapping("/contains/{contain}")
-    public ResponseEntity<List<Product>> getProductsByContaining(@PathVariable String cont){
-        List<Product> products = productService.getProductByNameContaining(cont);
-        log.info("Listing products containing {}: {}",cont,products);
-        return ResponseEntity.ok(products);
-    }
-    @PutMapping("/updatePrice")
-    public ResponseEntity<String> updateProductPriceByName(@RequestParam Double price, @RequestParam String name) {
-        int updatedRows = productService.updateProductPriceByName(price, name);
-        log.info("Updating {} product's price to: {}",name, price);
-        if (updatedRows > 0) {
-            log.info("Update completed");
-            return ResponseEntity.ok("Product price updated successfully.");
-        } else {
-            log.info("Product not found");
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByContaining(@PathVariable String cont) {
+        log.info("Request to retrieve products by containing {} ", cont);
+        try {
+            CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getProductByNameContaining(cont);
+            ApiResponse<List<ProductDTO>> response = future.get();
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving products {}", e.getMessage());
+            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
+    @PutMapping("/updatePrice")
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProductPriceByName(@RequestParam("Price") Double price,
+                                                                            @RequestParam("Name") String name) {
+            log.info("Updating {} product's price to {} ",price, name);
+            try {
+                CompletableFuture<ApiResponse<ProductDTO>> future = productService.updateProductPriceByName(price,name);
+                ApiResponse<ProductDTO> response = future.get();
+                return ResponseEntity.ok(response);
+            } catch (InterruptedException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                log.error("Error retrieving product {}", e.getMessage());
+                ApiResponse<ProductDTO> errorResponse = ApiResponse.<ProductDTO>builder()
+                        .success(false)
+                        .errorMessage("Internal server error")
+                        .errorCode("1500")
+                        .data(null)
+                        .build();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+    }
+}

@@ -35,11 +35,11 @@ public class ProductService {
     @Async
     public CompletableFuture<ApiResponse<List<ProductDTO>>> getAllProducts() {
 
-        String url = warehouseServiceBaseUrl;
+        String url = warehouseServiceBaseUrl + "/products";
         try{
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getStatusCode().is2xxSuccessful()){
-                List<ProductDTO> productDTOS = modelMapper.map(response.getBody,List<ProductDTO>.class);
+                List<ProductDTO> productDTOS = modelMapper.map(response.getBody(),List.class);
                 return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
             }
             else {
@@ -55,13 +55,13 @@ public class ProductService {
     }
 
     @Async
-    public CompletableFuture<Apiresponse<List<Product>>> getProductsByCategory(String categoryName) {
+    public CompletableFuture<ApiResponse<List<ProductDTO>>> getProductsByCategory(String categoryName) {
 
-        String url = warehouseServiceBaseUrl + categoryName;
+        String url = warehouseServiceBaseUrl + "/products/" + categoryName;
         try{
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getStatusCode().is2xxSuccessful()){
-                List<ProductDTO> productDTOS = modelMapper.map(response.getBody,List<ProductDTO>.class);
+                List<ProductDTO> productDTOS = modelMapper.map(response.getBody(),List.class);
                 return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
             }
             else {
@@ -76,20 +76,110 @@ public class ProductService {
         }
 
     }
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    @Async
+    public CompletableFuture<ApiResponse<ProductDTO>> getProductById(Long id) {
+        String url = warehouseServiceBaseUrl + "/products/" + id.toString();
+        try{
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()){
+                ProductDTO productDTOS = modelMapper.map(response.getBody(),ProductDTO.class);
+                return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
+            }
+            else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve product: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during products retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
     }
-    public List<Product> getProductsByPrefix(String prefix) {
-        return productRepository.findByNameStartingWith(prefix);
+    @Async
+    public CompletableFuture<ApiResponse<List<ProductDTO>>> getProductsByPrefix(String prefix) {
+        String url = warehouseServiceBaseUrl + "/prefix/" + prefix;
+        try{
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()){
+                List<ProductDTO> productDTOS = modelMapper.map(response.getBody(),List.class);
+                return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
+            }
+            else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve products: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during products retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
     }
-    public List<Product> getProductsByCategoryId(Long id){
-        return  productRepository.findByCategoryId(id);
+    @Async
+    public CompletableFuture<ApiResponse<List<ProductDTO>>> getProductsByCategoryId(Long id){
+        String url = warehouseServiceBaseUrl + "/category/" + id;
+        try{
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()){
+                List<ProductDTO> productDTOS = modelMapper.map(response.getBody(),List.class);
+                return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
+            }
+            else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve products: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during products retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
     }
-    public List<Product> getProductByNameContaining(String name){
-        return productRepository.findByNameContaining(name);
+    @Async
+    public CompletableFuture<ApiResponse<List<ProductDTO>>> getProductByNameContaining(String name){
+        String url = warehouseServiceBaseUrl + "/contains/" + name;
+        try{
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()){
+                List<ProductDTO> productDTOS = modelMapper.map(response.getBody(),List.class);
+                return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
+            }
+            else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve products: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during products retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
     }
-    public int updateProductPriceByName(Double price,String name){
-        return productRepository.updateProductPriceByName(price,name);
+    @Async
+    public CompletableFuture<ApiResponse<ProductDTO>>  updateProductPriceByName(Double price,String name){
+        String url = warehouseServiceBaseUrl + "/updatePrice";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Name",name);
+        headers.set("Price",price.toString());
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        try{
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, String.class);
+            if (response.getStatusCode().is2xxSuccessful()){
+                ProductDTO productDTOS = modelMapper.map(response.getBody(),ProductDTO.class);
+                log.info("Product updated");
+                return CompletableFuture.completedFuture(new ApiResponse<>(true,null,null,productDTOS));
+            }
+            else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve product: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during products retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
     }
 
 }

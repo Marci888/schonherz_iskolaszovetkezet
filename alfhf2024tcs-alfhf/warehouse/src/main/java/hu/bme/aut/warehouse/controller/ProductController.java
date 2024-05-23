@@ -60,7 +60,7 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
     @PutMapping("/updatePrice")
-    public ResponseEntity<String> updateProductPriceByName(@RequestParam Double price, @RequestParam String name) {
+    public ResponseEntity<String> updateProductPriceByName(@RequestParam("Price") Double price, @RequestParam("Name") String name) {
         int updatedRows = productService.updateProductPriceByName(price, name);
         log.info("Updating {} product's price to: {}",name, price);
         if (updatedRows > 0) {
