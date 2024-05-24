@@ -1,6 +1,6 @@
-package hu.bme.aut.cart;
+package hu.bme.aut.core;
 
-import hu.bme.aut.cart.init.DataInitializer;
+import hu.bme.aut.core.init.DataInitializer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -8,11 +8,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @RequiredArgsConstructor
 @SpringBootApplication
-public class CartApplication implements CommandLineRunner {
+public class CoreApplication implements CommandLineRunner {
     private final DataInitializer dataInitializer;
 
     public static void main(String[] args) {
-        SpringApplication.run(CartApplication.class, args);
+        SpringApplication.run(CoreApplication.class, args);
     }
 
     @Override

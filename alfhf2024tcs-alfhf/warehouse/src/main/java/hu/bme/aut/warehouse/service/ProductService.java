@@ -2,7 +2,6 @@ package hu.bme.aut.warehouse.service;
 
 import hu.bme.aut.warehouse.entity.Product;
 import hu.bme.aut.warehouse.repository.ProductRepository;
-import hu.bme.aut.warehouse.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
