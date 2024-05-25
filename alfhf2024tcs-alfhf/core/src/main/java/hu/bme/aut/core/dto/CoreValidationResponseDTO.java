@@ -1,4 +1,4 @@
-package hu.bme.aut.warehouse.dto;
+package hu.bme.aut.core.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

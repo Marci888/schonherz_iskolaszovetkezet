@@ -1,6 +1,6 @@
-package hu.bme.aut.warehouse.exception;
+package hu.bme.aut.core.exception;
 
-import hu.bme.aut.warehouse.dto.CoreValidationResponseDTO;
+import hu.bme.aut.core.dto.CoreValidationResponseDTO;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

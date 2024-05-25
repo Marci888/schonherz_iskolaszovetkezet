@@ -1,4 +1,4 @@
-package hu.bme.aut.warehouse;
+package hu.bme.aut.core;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,6 +1,6 @@
-package hu.bme.aut.warehouse.repository;
+package hu.bme.aut.core.repository;
 
-import hu.bme.aut.warehouse.model.UserToken;
+import hu.bme.aut.core.model.UserToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package hu.bme.aut.warehouse.repository;
+package hu.bme.aut.core.repository;
 
-import hu.bme.aut.warehouse.model.UserBankCard;
+import hu.bme.aut.core.model.UserBankCard;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

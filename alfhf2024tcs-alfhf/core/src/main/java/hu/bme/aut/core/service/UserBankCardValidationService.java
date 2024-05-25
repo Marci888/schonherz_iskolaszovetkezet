@@ -1,8 +1,8 @@
-package hu.bme.aut.warehouse.service;
+package hu.bme.aut.core.service;
 
-import hu.bme.aut.warehouse.exception.CoreServiceException;
-import hu.bme.aut.warehouse.model.UserBankCard;
-import hu.bme.aut.warehouse.repository.UserBankCardRepository;
+import hu.bme.aut.core.exception.CoreServiceException;
+import hu.bme.aut.core.model.UserBankCard;
+import hu.bme.aut.core.repository.UserBankCardRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

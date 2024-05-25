@@ -1,4 +1,4 @@
-package hu.bme.aut.warehouse;
+package hu.bme.aut.core;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

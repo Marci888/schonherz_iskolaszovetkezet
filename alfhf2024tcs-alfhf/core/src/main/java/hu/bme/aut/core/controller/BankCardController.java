@@ -1,7 +1,7 @@
-package hu.bme.aut.warehouse.controller;
+package hu.bme.aut.core.controller;
 
-import hu.bme.aut.warehouse.dto.CoreValidationResponseDTO;
-import hu.bme.aut.warehouse.service.UserBankCardValidationService;
+import hu.bme.aut.core.dto.CoreValidationResponseDTO;
+import hu.bme.aut.core.service.UserBankCardValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

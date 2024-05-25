@@ -1,8 +1,8 @@
-package hu.bme.aut.warehouse.service;
+package hu.bme.aut.core.service;
 
-import hu.bme.aut.warehouse.exception.CoreServiceException;
-import hu.bme.aut.warehouse.model.UserToken;
-import hu.bme.aut.warehouse.repository.UserTokenRepository;
+import hu.bme.aut.core.exception.CoreServiceException;
+import hu.bme.aut.core.model.UserToken;
+import hu.bme.aut.core.repository.UserTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

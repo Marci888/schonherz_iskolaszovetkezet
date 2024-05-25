@@ -1,11 +1,11 @@
-package hu.bme.aut.warehouse.servicetest;
+package hu.bme.aut.core.servicetest;
 
-import hu.bme.aut.warehouse.exception.CoreServiceException;
-import hu.bme.aut.warehouse.model.User;
-import hu.bme.aut.warehouse.model.UserBankCard;
-import hu.bme.aut.warehouse.repository.UserBankCardRepository;
-import hu.bme.aut.warehouse.service.UserBankCardValidationService;
-import hu.bme.aut.warehouse.service.UserTokenValidationService;
+import hu.bme.aut.core.exception.CoreServiceException;
+import hu.bme.aut.core.model.User;
+import hu.bme.aut.core.model.UserBankCard;
+import hu.bme.aut.core.repository.UserBankCardRepository;
+import hu.bme.aut.core.service.UserBankCardValidationService;
+import hu.bme.aut.core.service.UserTokenValidationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

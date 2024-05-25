@@ -1,4 +1,4 @@
-package hu.bme.aut.warehouse.exception;
+package hu.bme.aut.core.exception;
 
 import lombok.Getter;
 

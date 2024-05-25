@@ -1,11 +1,11 @@
-package hu.bme.aut.warehouse.servicetest;
+package hu.bme.aut.core.servicetest;
 
 
-import hu.bme.aut.warehouse.exception.CoreServiceException;
-import hu.bme.aut.warehouse.model.User;
-import hu.bme.aut.warehouse.model.UserToken;
-import hu.bme.aut.warehouse.repository.UserTokenRepository;
-import hu.bme.aut.warehouse.service.UserTokenValidationService;
+import hu.bme.aut.core.exception.CoreServiceException;
+import hu.bme.aut.core.model.User;
+import hu.bme.aut.core.model.UserToken;
+import hu.bme.aut.core.repository.UserTokenRepository;
+import hu.bme.aut.core.service.UserTokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
