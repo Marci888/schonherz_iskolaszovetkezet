@@ -3,9 +3,6 @@ package hu.bme.aut.api.frontend;
 import hu.bme.aut.api.dto.BasketDTO;
 import hu.bme.aut.api.dto.OrderDTO;
 import hu.bme.aut.api.dto.ProductDTO;
-import io.qt.concurrent.QtConcurrent;
-import io.qt.core.QEventLoop;
-import io.qt.core.QFutureWatcher;
 import io.qt.widgets.*;
 
 import java.util.ArrayList;
@@ -90,80 +87,24 @@ public class MyWindow extends QWidget {
                 throw new RuntimeException("refreshCurrentTab currentWidget has no match");
             }
         };
-
         userComboBox.currentTextChanged.connect((String s) -> {
-//            QApplication.setOverrideCursor(QCursor.CursorShape.WaitCursor);
-            var future = QtConcurrent.run(() -> { //refresh current tab
-                //TODO change user
-                refreshCurrentTab.run();
-            });
-            QFutureWatcher<Void> futureWatcher = new QFutureWatcher<>();
-            futureWatcher.setFuture(future);
-            QEventLoop eventLoop = new QEventLoop();
-            futureWatcher.finished.connect(eventLoop::exit);
-            futureWatcher.canceled.connect(() -> {
-                //TODO this is for debug purposes
-                throw new RuntimeException("userComboBox.currentTextChanged future canceled");
-            });
-            eventLoop.exec();
+            //TODO change user
+            refreshCurrentTab.run();
         });
         tabWidget.currentChanged.connect(refreshCurrentTab::run);
         buyButton.clicked.connect(() -> {
-//            QApplication.setOverrideCursor(QCursor.CursorShape.WaitCursor);
-            var future = QtConcurrent.run(() -> {
-                //TODO send order
-                boolean success = true;
-                if (success) {
-                    setCartTabContents(null); //show empty cart
-                }
-            });
-            QFutureWatcher<Void> futureWatcher = new QFutureWatcher<>();
-            futureWatcher.setFuture(future);
-            QEventLoop eventLoop = new QEventLoop();
-            futureWatcher.finished.connect(eventLoop::exit);
-            futureWatcher.canceled.connect(() -> {
-                //TODO this is for debug purposes
-                throw new RuntimeException("tabWidget.currentChanged future canceled");
-            });
-            eventLoop.exec();
+            //TODO send order
+            boolean success = true;
+            if (success) {
+                setCartTabContents(null); //show empty cart
+            }
         });
         searchButton.clicked.connect(() -> {
-            //TODO search
-            var future = QtConcurrent.run(() -> {
-                String name = nameLineEdit.text();
-                String category = categoryComboBox.currentText();
-                searchResults = new ArrayList<>(); //TODO query products
-                setProductSpinboxTableContents(searchResults, searchResultsTable);
-            });
-            QFutureWatcher<Void> futureWatcher = new QFutureWatcher<>();
-            futureWatcher.setFuture(future);
-            QEventLoop eventLoop = new QEventLoop();
-            futureWatcher.finished.connect(eventLoop::exit);
-            futureWatcher.canceled.connect(() -> {
-                //TODO this is for debug purposes
-                throw new RuntimeException("searchButton.clicked future canceled");
-            });
-            eventLoop.exec();
+            String name = nameLineEdit.text();
+            String category = categoryComboBox.currentText();
+            searchResults = new ArrayList<>(); //TODO query products
+            setProductSpinboxTableContents(searchResults, searchResultsTable);
         });
-
-        //test
-        var future = QtConcurrent.run(() -> {
-            System.out.println("this is the future");
-        });
-        QFutureWatcher<Void> futureWatcher = new QFutureWatcher<>();
-        futureWatcher.setFuture(future);
-        futureWatcher.finished.connect(() -> {
-            System.out.println("future completed");
-        });
-        futureWatcher.canceled.connect(() -> {
-            System.out.println("future canceled");
-        });
-        QEventLoop eventLoop = new QEventLoop();
-        System.out.println("Connecting future watcher to event loop");
-        futureWatcher.finished.connect(eventLoop::exit);
-        System.out.println("Starting event loop");
-        eventLoop.exec();
-        System.out.println("Finished event loop");
     }
     private final QTableWidget searchResultsTable;
     List<ProductDTO> searchResults = new ArrayList<>();
