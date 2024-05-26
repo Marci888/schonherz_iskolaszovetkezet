@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Base64;
+
 @Slf4j
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -42,8 +44,17 @@ public class DataInitializer implements CommandLineRunner {
         UserBankCard card2 = createBankCard("0987654321", "Alice Smith", "456", 2000.0, "EUR", user2);
 
         log.info("Giving them tokens");
-        UserToken token1 = createToken("token123", user1);
-        UserToken token2 = createToken("token456", user2);
+        UserToken userToken1 = new UserToken();
+        String tokenname1 = user1.getEmail() + "&" + user1.getUserId();
+        userToken1.setToken(Base64.getEncoder().encodeToString(tokenname1.getBytes()));
+        userToken1.setUser(user1);
+        user1.addUserToken(userToken1);
+
+        UserToken userToken2 = new UserToken();
+        String tokenname2 = user2.getEmail() + "&" + user2.getUserId();
+        userToken2.setToken(Base64.getEncoder().encodeToString(tokenname2.getBytes()));
+        userToken2.setUser(user2);
+        user1.addUserToken(userToken2);
 
         userRepository.save(user1);
         userRepository.save(user2);
@@ -51,8 +62,8 @@ public class DataInitializer implements CommandLineRunner {
         userBankCardRepository.save(card1);
         userBankCardRepository.save(card2);
 
-        userTokenRepository.save(token1);
-        userTokenRepository.save(token2);
+        userTokenRepository.save(userToken1);
+        userTokenRepository.save(userToken2);
 
         log.info("Data initialization complete.");
     }
