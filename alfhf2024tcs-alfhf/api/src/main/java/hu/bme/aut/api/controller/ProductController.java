@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 public class ProductController {
     private final ProductService productService;
 
+    @GetMapping
     public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProducts() {
         log.info("Request to retrieve all products ");
         try {
