@@ -32,6 +32,27 @@ public class BasketService {
     @Value("${cart.service.url}")
     private String cartServiceBaseUrl;
 
+    @Async
+    public CompletableFuture<ApiResponse<BasketDTO>> getBasketByUser(String userToken) {
+        log.debug("Attempting to retrieve basket with for user");
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(cartServiceBaseUrl, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                BasketDTO basketDTO = modelMapper.map(response.getBody(), BasketDTO.class);
+                log.info("Basket retrieved successfully with ID: {}", basketDTO.getBasketId());
+                return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, basketDTO));
+            } else {
+                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Failed to retrieve basket: {}", error.getErrorMessage());
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+            }
+        } catch (HttpClientErrorException ex) {
+            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            log.error("HTTP error during basket retrieval: {}", error.getErrorMessage());
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        }
+    }
+
     /**
      * Retrieves a basket by its ID asynchronously.
      *
