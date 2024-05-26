@@ -45,7 +45,6 @@ public class DataInitializer implements CommandLineRunner {
         UserToken token1 = createToken("token123", user1);
         UserToken token2 = createToken("token456", user2);
 
-
         userRepository.save(user1);
         userRepository.save(user2);
 
