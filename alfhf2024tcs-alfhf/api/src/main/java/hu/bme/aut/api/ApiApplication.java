@@ -1,13 +1,10 @@
 package hu.bme.aut.api;
 
-import io.qt.widgets.QApplication;
-import io.qt.widgets.QWidget;
+import hu.bme.aut.api.frontend.MyWindow;
+import io.qt.widgets.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
 @RequiredArgsConstructor
 @SpringBootApplication
@@ -17,7 +14,7 @@ public class ApiApplication implements CommandLineRunner {
 
 //        SpringApplication.run(ApiApplication.class, args);
         QApplication.initialize(new String[]{});
-        QWidget window = new QWidget();
+        MyWindow window = new MyWindow();
         window.show();
         QApplication.exec();
     }

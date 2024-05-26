@@ -26,6 +26,21 @@
             <artifactId>qtjambi</artifactId>
             <version>6.7.0</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.qt</groupId>-->
+<!--            <artifactId>qtjambi-concurrent-native-windows-x64</artifactId>-->
+<!--            <version>6.7.0</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>io.qtjambi</groupId>
+            <artifactId>qtjambi-concurrent</artifactId>
+            <version>6.7.0</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.qtjambi</groupId>-->
+<!--            <artifactId>qtjambi-gui</artifactId>-->
+<!--            <version>6.7.0</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
