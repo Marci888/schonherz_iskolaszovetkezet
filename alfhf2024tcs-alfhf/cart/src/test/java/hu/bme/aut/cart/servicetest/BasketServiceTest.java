@@ -14,8 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class BasketServiceTest {
 
     @Mock
@@ -112,14 +112,18 @@ class BasketServiceTest {
     void testGetBasketById() {
         // Arrange
         when(basketRepository.findById(anyLong())).thenReturn(Optional.of(basket));
-        when(modelMapper.map(any(Basket.class), eq(BasketDTO.class))).thenReturn(new BasketDTO());
+        when(modelMapper.map(any(Basket.class), eq(BasketDTO.class))).thenReturn(basketDTO);
+        when(basketRepository.save(any(Basket.class))).thenReturn(basket);
 
         // Act
         BasketDTO result = basketService.getBasketById(1L);
 
         // Assert
         assertNotNull(result);
+        assertEquals(1L, result.getBasketId());
         verify(basketRepository, times(1)).findById(anyLong());
+        verify(modelMapper, times(1)).map(any(Basket.class), eq(BasketDTO.class));
+        verify(warehouseClient, times(basket.getProducts().size())).getProductDetails(anyLong());
     }
     @Test
     void testSaveAndConvertBasket() {
