@@ -1,11 +1,11 @@
 package hu.bme.aut.core.init;
 
 import hu.bme.aut.core.model.User;
+import hu.bme.aut.core.model.UserBankCard;
+import hu.bme.aut.core.model.UserToken;
 import hu.bme.aut.core.repository.UserBankCardRepository;
 import hu.bme.aut.core.repository.UserRepository;
 import hu.bme.aut.core.repository.UserTokenRepository;
-import hu.bme.aut.core.model.UserBankCard;
-import hu.bme.aut.core.model.UserToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -44,7 +44,6 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Giving them tokens");
         UserToken token1 = createToken("token123", user1);
         UserToken token2 = createToken("token456", user2);
-
 
         userRepository.save(user1);
         userRepository.save(user2);

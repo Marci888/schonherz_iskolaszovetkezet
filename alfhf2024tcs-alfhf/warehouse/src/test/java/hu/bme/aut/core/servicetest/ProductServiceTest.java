@@ -1,14 +1,14 @@
-package hu.bme.aut.warehouse.servicetest;
+package hu.bme.aut.core.servicetest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import hu.bme.aut.warehouse.entity.Category;
-import hu.bme.aut.warehouse.entity.Product;
-import hu.bme.aut.warehouse.repository.ProductRepository;
-import hu.bme.aut.warehouse.service.ProductService;
+import hu.bme.aut.core.entity.Category;
+import hu.bme.aut.core.entity.Product;
+import hu.bme.aut.core.repository.ProductRepository;
+import hu.bme.aut.core.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

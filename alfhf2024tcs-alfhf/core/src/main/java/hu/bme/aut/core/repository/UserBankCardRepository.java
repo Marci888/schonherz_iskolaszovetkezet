@@ -15,5 +15,4 @@ import java.util.Optional;
 public interface UserBankCardRepository extends JpaRepository<UserBankCard, Long> {
     @Query(value = "SELECT * FROM user_bank_card WHERE card_id = :cardId AND user_id = :userId", nativeQuery = true)
     Optional<UserBankCard> findByCardIdAndUserId(@Param("cardId") String cardId, @Param("userId") Long userId);
-
 }

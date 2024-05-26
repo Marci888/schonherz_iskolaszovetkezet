@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/warehouse")
+@RequestMapping("/api/products")
 public class ProductController {
     private final ProductService productService;
 
