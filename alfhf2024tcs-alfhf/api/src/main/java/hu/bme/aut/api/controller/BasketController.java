@@ -20,6 +20,27 @@ public class BasketController {
 
     private final BasketService basketService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<BasketDTO>> getBasketById(@RequestHeader("User-Token") String userToken) {
+        log.info("Request to retrieve basket for user");
+        try {
+            CompletableFuture<ApiResponse<BasketDTO>> future = basketService.getBasketByUser(userToken);
+            ApiResponse<BasketDTO> response = future.get();
+            log.debug("Basket retrieved successfully with ID: {}", response.getData().getBasketId());
+            return ResponseEntity.ok(response);
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            log.error("Error retrieving basket for user: {}", e.getMessage());
+            ApiResponse<BasketDTO> errorResponse = ApiResponse.<BasketDTO>builder()
+                    .success(false)
+                    .errorMessage("Internal server error")
+                    .errorCode("1500")
+                    .data(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
     /**
      * Retrieves a basket by its ID.
      *

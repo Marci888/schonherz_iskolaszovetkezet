@@ -34,6 +34,14 @@ public class BasketService {
     private final ModelMapper modelMapper;
     private final CoreClient coreClient;
 
+    @Transactional
+    public BasketDTO getBasketByUser(String userToken) {
+        log.debug("Retrieving details for basket by user");
+        Long userId = coreClient.getUserIdFromToken(userToken);
+        Basket basket = getOrCreateActiveBasket(userId);
+        return saveAndConvertBasket(basket);
+    }
+
     /**
      * Adds or updates the quantity of a specified product in a user's active basket.
      * If no active basket exists, a new basket is created.
