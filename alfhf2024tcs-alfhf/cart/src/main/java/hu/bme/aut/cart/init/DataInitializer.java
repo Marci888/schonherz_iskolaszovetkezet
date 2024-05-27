@@ -47,18 +47,12 @@ public class DataInitializer implements CommandLineRunner {
                 .userId(1L)
                 .basketStatus(BasketStatus.ACTIVE)
                 .subTotalAmount(0.0)
-                .products(createProductMap())
                 .build();
         log.info("Basket created: {}", basket);
+        basket.addProduct(1L,20.2,2);
         return basket;
     }
 
-    private Map<Long, Integer> createProductMap() {
-        Map<Long, Integer> products = new HashMap<>();
-        products.put(1L, 2);
-        products.put(2L, 1);
-        return products;
-    }
 
     private Order createOrder(Basket basket) {
         Order order = Order.builder()

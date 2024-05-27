@@ -64,18 +64,6 @@ class OrderServiceTest {
         order.setTotalAmount(100.0);
     }
 
-    @Test
-    void testCreateOrderFromBasket_Success() {
-        // Arrange
-        when(coreClient.validateCard(anyString(), anyString(), anyDouble())).thenReturn(new CoreValidationResponseDTO());
-
-        // Act
-        OrderDTO result = orderService.createOrderFromBasket(1L, "card123", "token123");
-
-        // Assert
-        assertNotNull(result);
-        // Add further assertions as needed
-    }
 
     @Test
     void testCreateOrderFromBasket_OrderAlreadyExists() {

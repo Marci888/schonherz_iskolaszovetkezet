@@ -1,12 +1,16 @@
 package hu.bme.aut.warehouse.service;
 
+import hu.bme.aut.warehouse.dto.ProductDTO;
 import hu.bme.aut.warehouse.entity.Product;
 import hu.bme.aut.warehouse.repository.ProductRepository;
+import jakarta.transaction.Transactional;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -17,24 +21,56 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    @Transactional
+    public List<ProductDTO> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    public List<Product> getProductsByCategory(String categoryName) {
-        return productRepository.findByCategoryName(categoryName);
+    private ProductDTO convertToDTO(Product product) {
+         ProductDTO productDTO = ProductDTO.builder()
+                .productId(product.getId())
+                .category(product.getCategory().getName())
+                .price(product.getPrice())
+                .name(product.getName())
+                .build();
+         return productDTO;
     }
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    private ProductDTO convertToDTO(Optional<Product> optionalProduct) {
+        if (optionalProduct.isPresent()) {
+            Product product = optionalProduct.get();
+            return ProductDTO.builder()
+                    .productId(product.getId())
+                    .category(product.getCategory().getName())
+                    .price(product.getPrice())
+                    .name(product.getName())
+                    .build();
+        } else {
+            // Handle the case where the product is not present
+            return null; // or throw an exception
+        }
     }
-    public List<Product> getProductsByPrefix(String prefix) {
-        return productRepository.findByNameStartingWith(prefix);
+    public List<ProductDTO> getProductsByCategory(String categoryName) {
+        List<Product> products = productRepository.findByCategoryName(categoryName);
+        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
-    public List<Product> getProductsByCategoryId(Long id){
-        return  productRepository.findByCategoryId(id);
+    public ProductDTO getProductById(Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        return  convertToDTO(product);
+
+
     }
-    public List<Product> getProductByNameContaining(String name){
-        return productRepository.findByNameContaining(name);
+    public List<ProductDTO> getProductsByPrefix(String prefix) {
+        List<Product> products = productRepository.findByNameStartingWith(prefix);
+        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    public List<ProductDTO> getProductByNameContaining(String name){
+        List<Product> products = productRepository.findByNameContaining(name);
+        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
     public int updateProductPriceByName(Double price,String name){
         return productRepository.updateProductPriceByName(price,name);

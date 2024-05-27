@@ -1,6 +1,7 @@
 package hu.bme.aut.warehouse.controller;
 
 
+import hu.bme.aut.warehouse.dto.ProductDTO;
 import hu.bme.aut.warehouse.entity.Product;
 import hu.bme.aut.warehouse.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,38 +25,28 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        log.info("Listing all products: {}",products);
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        List<ProductDTO> products = productService.getAllProducts();
+        //log.info("Listing all products: {}",products);
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/products/{categoryName}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String categoryName) {
-        List<Product> products = productService.getProductsByCategory(categoryName);
+    @GetMapping("/products/category/{categoryName}")
+    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName) {
+        List<ProductDTO> products = productService.getProductsByCategory(categoryName);
         log.info("Listing products by {} Category: {}",categoryName,products);
         return ResponseEntity.ok(products);
     }
     @GetMapping("/prefix/{prefix}")
-    public ResponseEntity<List<Product>> getProductsByPrefix(@PathVariable String prefix) {
-        List<Product> products = productService.getProductsByPrefix(prefix);
+    public ResponseEntity<List<ProductDTO>> getProductsByPrefix(@PathVariable String prefix) {
+        List<ProductDTO> products = productService.getProductsByPrefix(prefix);
         log.info("Listing products by {} prefix: {}",prefix,products);
         return ResponseEntity.ok(products);
     }
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Product>> getProductsByCategoryId(@PathVariable Long categoryId) {
-        List<Product> products = productService.getProductsByCategoryId(categoryId);
-        log.info("Listing products by a Category's ID");
-        if (products.isEmpty()) {
-            log.info("No matching ID found");
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        log.info("The products from the Category: {}",products);
-        return new ResponseEntity<>(products, HttpStatus.OK);
-    }
+
     @GetMapping("/contains/{contain}")
-    public ResponseEntity<List<Product>> getProductsByContaining(@PathVariable String cont){
-        List<Product> products = productService.getProductByNameContaining(cont);
+    public ResponseEntity<List<ProductDTO>> getProductsByContaining(@PathVariable String cont){
+        List<ProductDTO> products = productService.getProductByNameContaining(cont);
         log.info("Listing products containing {}: {}",cont,products);
         return ResponseEntity.ok(products);
     }
@@ -72,14 +63,9 @@ public class ProductController {
         }
     }
     @GetMapping("/products/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        log.info("Getting a specific product from {} ID",id);
-        Optional<Product> product = productService.getProductById(id);
-        if(product.isEmpty())
-            log.info("No product with that ID");
-        else
-            log.info("Got {} product",product);
-        return product.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        ProductDTO product = productService.getProductById(id);
+        log.info("Getting product by {} ID",id);
+        return ResponseEntity.ok(product);
     }
 }

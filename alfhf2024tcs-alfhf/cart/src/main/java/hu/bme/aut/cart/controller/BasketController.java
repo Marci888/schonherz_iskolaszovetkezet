@@ -21,6 +21,14 @@ public class BasketController {
 
     private final BasketService basketService;
 
+    @GetMapping
+    public ResponseEntity<?> getBasketByUser(@RequestHeader("User-Token") String userToken ) {
+        log.debug("Fetching basket for user");
+        BasketDTO basketDTO = basketService.getBasketByUser(userToken);
+        log.info("Basket fetched successfully with ID {}", basketDTO.getBasketId());
+        return ResponseEntity.ok(basketDTO);
+    }
+
     /**
      * Retrieves a basket by its ID.
      *

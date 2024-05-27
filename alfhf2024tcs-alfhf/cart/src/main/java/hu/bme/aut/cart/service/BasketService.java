@@ -1,11 +1,9 @@
 package hu.bme.aut.cart.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.bme.aut.cart.client.CoreClient;
 import hu.bme.aut.cart.dto.BasketDTO;
 import hu.bme.aut.cart.dto.ProductDTO;
 import hu.bme.aut.cart.exception.BasketNotFoundException;
-import hu.bme.aut.cart.exception.ProductNotFoundException;
 import hu.bme.aut.cart.model.enums.BasketStatus;
 import hu.bme.aut.cart.repository.BasketRepository;
 import hu.bme.aut.cart.client.WarehouseClient;
@@ -33,6 +31,14 @@ public class BasketService {
     private final WarehouseClient warehouseClient;
     private final ModelMapper modelMapper;
     private final CoreClient coreClient;
+
+    @Transactional
+    public BasketDTO getBasketByUser(String userToken) {
+        log.debug("Retrieving details for basket by user");
+        Long userId = coreClient.getUserIdFromToken(userToken);
+        Basket basket = getOrCreateActiveBasket(userId);
+        return saveAndConvertBasket(basket);
+    }
 
     /**
      * Adds or updates the quantity of a specified product in a user's active basket.
@@ -83,6 +89,7 @@ public class BasketService {
         log.debug("Retrieving details for basket {}", basketId);
         Basket basket = basketRepository.findById(basketId)
                 .orElseThrow(() -> new BasketNotFoundException("Basket not found", "3405"));
+        log.debug("Basket found: {}", basket.getBasketId());
         return saveAndConvertBasket(basket);
     }
 
@@ -105,6 +112,7 @@ public class BasketService {
      * @return The converted BasketDTO.
      */
     public BasketDTO saveAndConvertBasket(Basket basket) {
+        log.debug("Saving and converting basket: {}", basket.getBasketId());
         basket = basketRepository.save(basket);
         log.info("Basket {} updated. Subtotal: {}", basket.getBasketId(), basket.getSubTotalAmount());
         return convertToBasketDTO(basket);

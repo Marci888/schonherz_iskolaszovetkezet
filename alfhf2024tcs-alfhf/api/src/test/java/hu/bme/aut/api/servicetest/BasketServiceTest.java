@@ -3,10 +3,13 @@ import hu.bme.aut.api.dto.ApiResponse;
 import hu.bme.aut.api.dto.BasketDTO;
 import hu.bme.aut.api.dto.ErrorResponseDTO;
 import hu.bme.aut.api.service.BasketService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,8 +29,16 @@ public class BasketServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private ModelMapper modelMapper;
+
     @InjectMocks
     private BasketService basketService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     public void testGetBasketById_Success() {
@@ -37,7 +48,9 @@ public class BasketServiceTest {
         ApiResponse<BasketDTO> expectedResponse = new ApiResponse<>(true, null, null, basketDTO);
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"basketId\":1}", HttpStatus.OK);
         CompletableFuture<ApiResponse<BasketDTO>> future = CompletableFuture.completedFuture(expectedResponse);
+
         when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(responseEntity);
+        when(modelMapper.map(anyString(), eq(BasketDTO.class))).thenReturn(basketDTO);
 
         // Act
         CompletableFuture<ApiResponse<BasketDTO>> result = basketService.getBasketById(basketId);
@@ -46,6 +59,7 @@ public class BasketServiceTest {
         assertTrue(result.join().isSuccess());
         assertEquals(expectedResponse, result.join());
         verify(restTemplate, times(1)).getForEntity(anyString(), eq(String.class));
+        verify(modelMapper, times(1)).map(anyString(), eq(BasketDTO.class));
     }
 
     @Test
@@ -58,7 +72,9 @@ public class BasketServiceTest {
         ApiResponse<BasketDTO> expectedResponse = new ApiResponse<>(true, null, null, basketDTO);
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"basketId\":1}", HttpStatus.OK);
         CompletableFuture<ApiResponse<BasketDTO>> future = CompletableFuture.completedFuture(expectedResponse);
+
         when(restTemplate.exchange(anyString(), eq(HttpMethod.PUT), any(), eq(String.class))).thenReturn(responseEntity);
+        when(modelMapper.map(anyString(), eq(BasketDTO.class))).thenReturn(basketDTO);
 
         // Act
         CompletableFuture<ApiResponse<BasketDTO>> result = basketService.addToBasket(userToken, productId, quantity);
@@ -67,6 +83,7 @@ public class BasketServiceTest {
         assertTrue(result.join().isSuccess());
         assertEquals(expectedResponse, result.join());
         verify(restTemplate, times(1)).exchange(anyString(), eq(HttpMethod.PUT), any(), eq(String.class));
+        verify(modelMapper, times(1)).map(anyString(), eq(BasketDTO.class));
     }
 
     @Test
@@ -79,8 +96,10 @@ public class BasketServiceTest {
         ApiResponse<BasketDTO> expectedResponse = new ApiResponse<>(true, null, null, basketDTO);
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"basketId\":1}", HttpStatus.OK);
         CompletableFuture<ApiResponse<BasketDTO>> future = CompletableFuture.completedFuture(expectedResponse);
+
         doReturn(responseEntity).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(), eq(Void.class));
         when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(responseEntity);
+        when(modelMapper.map(anyString(), eq(BasketDTO.class))).thenReturn(basketDTO);
 
         // Act
         CompletableFuture<ApiResponse<BasketDTO>> result = basketService.removeFromBasket(userToken, productId, quantity);
@@ -90,5 +109,6 @@ public class BasketServiceTest {
         assertEquals(expectedResponse, result.join());
         verify(restTemplate, times(1)).exchange(anyString(), eq(HttpMethod.DELETE), any(), eq(Void.class));
         verify(restTemplate, times(1)).getForEntity(anyString(), eq(String.class));
+        verify(modelMapper, times(1)).map(anyString(), eq(BasketDTO.class));
     }
 }

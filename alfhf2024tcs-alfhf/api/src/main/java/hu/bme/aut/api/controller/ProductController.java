@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 public class ProductController {
     private final ProductService productService;
 
-    @GetMapping("/products")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<ProductDTO>>> getAllProducts() {
         log.info("Request to retrieve all products ");
         try {
@@ -41,7 +41,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/products/{categoryName}")
+    @GetMapping("/category/{categoryName}")
     public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategory(@PathVariable String categoryName) {
         log.info("Request to retrieve products by {} category ", categoryName);
         try {
@@ -60,7 +60,7 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-    @GetMapping("/products/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDTO>> getProductById(@PathVariable Long id) {
         log.info("Request to retrieve product by {} ID ", id);
         try {
@@ -100,25 +100,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByCategoryId(@PathVariable Long categoryId) {
-        log.info("Request to retrieve products by {} categoryID ", categoryId);
-        try {
-            CompletableFuture<ApiResponse<List<ProductDTO>>> future = productService.getProductsByCategoryId(categoryId);
-            ApiResponse<List<ProductDTO>> response = future.get();
-            return ResponseEntity.ok(response);
-        } catch (InterruptedException | ExecutionException e) {
-            Thread.currentThread().interrupt();
-            log.error("Error retrieving products {}", e.getMessage());
-            ApiResponse<List<ProductDTO>> errorResponse = ApiResponse.<List<ProductDTO>>builder()
-                    .success(false)
-                    .errorMessage("Internal server error")
-                    .errorCode("1500")
-                    .data(null)
-                    .build();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
+
 
     @GetMapping("/contains/{contain}")
     public ResponseEntity<ApiResponse<List<ProductDTO>>> getProductsByContaining(@PathVariable String cont) {
@@ -143,7 +125,7 @@ public class ProductController {
     @PutMapping("/updatePrice")
     public ResponseEntity<ApiResponse<ProductDTO>> updateProductPriceByName(@RequestParam("Price") Double price,
                                                                             @RequestParam("Name") String name) {
-            log.info("Updating {} product's price to {} ",price, name);
+            log.info("Updating {} product's price to {} ",name, price);
             try {
                 CompletableFuture<ApiResponse<ProductDTO>> future = productService.updateProductPriceByName(price,name);
                 ApiResponse<ProductDTO> response = future.get();

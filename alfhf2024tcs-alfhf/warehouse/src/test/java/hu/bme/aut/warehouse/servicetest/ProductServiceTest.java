@@ -1,14 +1,15 @@
-package hu.bme.aut.core.servicetest;
+package hu.bme.aut.warehouse.servicetest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import hu.bme.aut.core.entity.Category;
-import hu.bme.aut.core.entity.Product;
-import hu.bme.aut.core.repository.ProductRepository;
-import hu.bme.aut.core.service.ProductService;
+import hu.bme.aut.warehouse.dto.ProductDTO;
+import hu.bme.aut.warehouse.entity.Product;
+import hu.bme.aut.warehouse.entity.Category;
+import hu.bme.aut.warehouse.repository.ProductRepository;
+import hu.bme.aut.warehouse.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -37,7 +38,7 @@ public class ProductServiceTest {
         Product product2 = new Product(2L, "Product2", 20.0, new Category(1L, "Category1"));
         when(productRepository.findAll()).thenReturn(Arrays.asList(product1, product2));
 
-        List<Product> products = productService.getAllProducts();
+        List<ProductDTO> products = productService.getAllProducts();
 
         assertThat(products).hasSize(2);
         assertThat(products.get(0).getName()).isEqualTo("Product1");
@@ -49,7 +50,7 @@ public class ProductServiceTest {
         Product product = new Product(1L, "Product1", 10.0, new Category(1L, "Category1"));
         when(productRepository.findByCategoryName(anyString())).thenReturn(Arrays.asList(product));
 
-        List<Product> products = productService.getProductsByCategory("Category1");
+        List<ProductDTO> products = productService.getProductsByCategory("Category1");
 
         assertThat(products).hasSize(1);
         assertThat(products.get(0).getName()).isEqualTo("Product1");
@@ -59,11 +60,9 @@ public class ProductServiceTest {
     public void testGetProductById() {
         Product product = new Product(1L, "Product1", 10.0, new Category(1L, "Category1"));
         when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
+        ProductDTO foundProduct = productService.getProductById(1L);
 
-        Optional<Product> foundProduct = productService.getProductById(1L);
-
-        assertThat(foundProduct).isPresent();
-        assertThat(foundProduct.get().getName()).isEqualTo("Product1");
+        assertThat(foundProduct.getName()).isEqualTo("Product1");
     }
 
     @Test
@@ -71,29 +70,20 @@ public class ProductServiceTest {
         Product product = new Product(1L, "Product1", 10.0, new Category(1L, "Category1"));
         when(productRepository.findByNameStartingWith(anyString())).thenReturn(Arrays.asList(product));
 
-        List<Product> products = productService.getProductsByPrefix("Pro");
+        List<ProductDTO> products = productService.getProductsByPrefix("Pro");
 
         assertThat(products).hasSize(1);
         assertThat(products.get(0).getName()).isEqualTo("Product1");
     }
 
-    @Test
-    public void testGetProductsByCategoryId() {
-        Product product = new Product(1L, "Product1", 10.0, new Category(1L, "Category1"));
-        when(productRepository.findByCategoryId(anyLong())).thenReturn(Arrays.asList(product));
 
-        List<Product> products = productService.getProductsByCategoryId(1L);
-
-        assertThat(products).hasSize(1);
-        assertThat(products.get(0).getName()).isEqualTo("Product1");
-    }
 
     @Test
     public void testGetProductByNameContaining() {
         Product product = new Product(1L, "Product1", 10.0, new Category(1L, "Category1"));
         when(productRepository.findByNameContaining(anyString())).thenReturn(Arrays.asList(product));
 
-        List<Product> products = productService.getProductByNameContaining("duct");
+        List<ProductDTO> products = productService.getProductByNameContaining("duct");
 
         assertThat(products).hasSize(1);
         assertThat(products.get(0).getName()).isEqualTo("Product1");
