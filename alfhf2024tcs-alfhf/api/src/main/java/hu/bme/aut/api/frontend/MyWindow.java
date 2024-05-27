@@ -13,7 +13,7 @@ public class MyWindow extends QWidget {
         super();
         QVBoxLayout layout = new QVBoxLayout(this);
 
-        QComboBox userComboBox = new QComboBox(this);
+        userComboBox = new QComboBox(this);
         layout.addWidget(userComboBox);
         userComboBox.addItem("John Doe");
         userComboBox.addItem("Alice Smith");
@@ -77,10 +77,10 @@ public class MyWindow extends QWidget {
             if (currentTab.equals("searchTab")) {
                 setProductSpinboxTableContents(searchResults, searchResultsTable);
             } else if (currentTab.equals("cartTab")) {
-                BasketDTO basket = null; //TODO get basket
+                BasketDTO basket = getBasket();
                 setCartTabContents(basket);
             } else if (currentTab.equals("ordersTab")) {
-                List<OrderDTO> orders = new ArrayList<>(); //TODO get orders
+                List<OrderDTO> orders = getOrders();
                 setOrdersTabContents(orders);
             } else {
                 //TODO this is for debug purposes
@@ -88,12 +88,11 @@ public class MyWindow extends QWidget {
             }
         };
         userComboBox.currentTextChanged.connect((String s) -> {
-            //TODO change user
             refreshCurrentTab.run();
         });
         tabWidget.currentChanged.connect(refreshCurrentTab::run);
         buyButton.clicked.connect(() -> {
-            //TODO send order
+            sendOrder();
             boolean success = true;
             if (success) {
                 setCartTabContents(null); //show empty cart
@@ -102,10 +101,11 @@ public class MyWindow extends QWidget {
         searchButton.clicked.connect(() -> {
             String name = nameLineEdit.text();
             String category = categoryComboBox.currentText();
-            searchResults = new ArrayList<>(); //TODO query products
+            searchResults = queryProducts(name, category);
             setProductSpinboxTableContents(searchResults, searchResultsTable);
         });
     }
+
     private final QTableWidget searchResultsTable;
     List<ProductDTO> searchResults = new ArrayList<>();
     private void setSearchResultsTableContents(List<ProductDTO> products) {
@@ -121,22 +121,29 @@ public class MyWindow extends QWidget {
     }
     private void setProductSpinboxTableContents(List<ProductDTO> products, QTableWidget table) {
         cartTable.setRowCount(products.size());
+        BasketDTO cart = getBasket();
         for (int i = 0; i < products.size(); i++) {
             ProductDTO product = products.get(i);
             cartTable.setItem(i, 0, new QTableWidgetItem(product.getName()));
             cartTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
-            cartTable.setItem(i, 2, new QTableWidgetItem(product.getPrice().toString())); //TODO: currency
+            cartTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
             cartTable.setItem(i, 3, new QTableWidgetItem(product.getQuantity().toString()));
             QSpinBox spinBox = new QSpinBox(cartTable);
             spinBox.setMaximum(product.getQuantity());
-            //TODO spinBox.setValue(/*amount in cart*/)
+            if (cart != null) {
+                spinBox.setValue(cart.getProducts().stream()
+                        .filter(x -> x.getProductId().equals(product.getProductId()))
+                        .map(ProductDTO::getQuantity)
+                        .findAny().orElse(0));
+            }
             spinBox.valueChanged.connect(() -> {
                 int value = spinBox.getValue();
-                //TODO change cart
+                changeBasket(product.getProductId(), value);
             });
             cartTable.setCellWidget(i, 5, spinBox);
         }
     }
+
     private final QTableWidget ordersTable;
     private void setOrdersTabContents(List<OrderDTO> orders) {
         ordersTable.setRowCount(orders.size());
@@ -173,7 +180,35 @@ public class MyWindow extends QWidget {
         orderContentsDialog.exec();
     }
 
+    //TODO-------------------------
+    private final QComboBox userComboBox;
+    private String getUserName() {
+        return userComboBox.currentText();
+    }
+
     private static String priceToString(double price) {
-        return String.valueOf(price); //TODO price to string
+        return "%.2f".formatted(price);
+    }
+
+    //an empty list will be displayed as no products
+    private ArrayList<ProductDTO> queryProducts(String name, String category) {
+        return new ArrayList<>();
+    }
+
+    private void sendOrder() {
+    }
+
+    //an empty list will be displayed as no orders
+    private ArrayList<OrderDTO> getOrders() {
+        return new ArrayList<>();
+    }
+
+    //null will be displayed as an empty basket
+    private BasketDTO getBasket() {
+        return null;
+    }
+
+    private void changeBasket(Long productId, int newAmount) {
+
     }
 }
