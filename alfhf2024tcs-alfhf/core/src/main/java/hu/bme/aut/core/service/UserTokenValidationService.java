@@ -1,7 +1,9 @@
 package hu.bme.aut.core.service;
 
 import hu.bme.aut.core.exception.CoreServiceException;
+import hu.bme.aut.core.model.User;
 import hu.bme.aut.core.model.UserToken;
+import hu.bme.aut.core.repository.UserRepository;
 import hu.bme.aut.core.repository.UserTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.StringTokenizer;
 @Service
 @RequiredArgsConstructor
 public class UserTokenValidationService {
+    private final UserRepository userRepository;
     private final UserTokenRepository userTokenRepository;
 
     /**
@@ -33,10 +36,10 @@ public class UserTokenValidationService {
     public Long getUserIdFromToken(String encodedToken) {
         try {
             String decodedToken = new String(Base64.getDecoder().decode(encodedToken));
+            log.info("Decoded token: {}", decodedToken);
             StringTokenizer tokenizer = new StringTokenizer(decodedToken, "&");
             tokenizer.nextToken();
             Long userId = Long.parseLong(tokenizer.nextToken());
-
             Optional<UserToken> tokenOpt = userTokenRepository.findByToken(encodedToken);
             if (tokenOpt.isEmpty() || !tokenOpt.get().getUser().getUserId().equals(userId)) {
                 log.error("Token validation failed. Token does not match any user or is expired.");
@@ -49,5 +52,21 @@ public class UserTokenValidationService {
             log.error("Invalid token provided: {}", encodedToken);
             throw new CoreServiceException("A felhasználói token nem szerepel.", "10050");
         }
+    }
+
+    @Transactional
+    public void generateUserToken(User user) {
+        String firstSegment = user.getEmail();
+        String secondSegment = user.getUserId().toString();
+        String token = Base64.getEncoder().encodeToString((firstSegment + '&' + secondSegment).getBytes());
+
+        UserToken userToken = UserToken.builder()
+                .token(token)
+                .user(user)
+                .build();
+        userToken = userTokenRepository.save(userToken);
+
+        user.addUserToken(userToken);
+        userRepository.save(user);
     }
 }

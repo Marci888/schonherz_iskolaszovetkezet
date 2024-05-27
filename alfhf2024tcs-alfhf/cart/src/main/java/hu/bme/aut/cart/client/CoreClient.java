@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Locale;
 import java.util.Objects;
 
 @Service
@@ -36,8 +37,10 @@ public class CoreClient {
      * @param price The price to check against the card's balance.
      * @return CoreValidationResponseDTO containing the validation result.
      */
-    public CoreValidationResponseDTO validateCard(String userToken, String cardId, double price) {
-        String url = String.format("%s/core/balance/%s/%f", coreServiceUrl, cardId, price);
+    public CoreValidationResponseDTO validateCard(String userToken, String cardId, Double price) {
+        String formattedPrice = String.format(Locale.US, "%.2f", price);
+        String url = String.format("%s/balance/%s/%s", coreServiceUrl, cardId, formattedPrice);
+        log.info("URL: {}", url);
         HttpHeaders headers = new HttpHeaders();
         headers.set("User-Token", userToken);
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);

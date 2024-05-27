@@ -34,11 +34,18 @@ public class BankCardController {
     public ResponseEntity<CoreValidationResponseDTO> checkBalance(
             @RequestHeader("User-Token") String token,
             @PathVariable String cardId,
-            @PathVariable int price) {
+            @PathVariable String price) {
         log.info("Request to validate card and check balance for card ID: {} and price: {}", cardId, price);
-        boolean isValid = userBankCardValidationService.validateCard(token, cardId);
-        boolean hasBalance = userBankCardValidationService.checkCardBalance(cardId, price);
 
-        return ResponseEntity.ok(new CoreValidationResponseDTO(isValid && hasBalance, null, null));
+        try {
+            double parsedPrice = Double.parseDouble(price.replace(",", "."));
+            log.info("card id: {}, price: {}", cardId, parsedPrice);
+            boolean isValid = userBankCardValidationService.validateCard(token, cardId);
+            boolean hasBalance = userBankCardValidationService.checkCardBalance(cardId, parsedPrice);
+            return ResponseEntity.ok(new CoreValidationResponseDTO(isValid && hasBalance, null, null));
+        } catch (NumberFormatException ex) {
+            log.error("Error parsing price: {}", ex.getMessage());
+            return ResponseEntity.badRequest().body(new CoreValidationResponseDTO(false, "Invalid price format", "3501"));
+        }
     }
 }
