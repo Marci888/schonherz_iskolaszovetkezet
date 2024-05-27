@@ -4,10 +4,12 @@ import hu.bme.aut.api.dto.BasketDTO;
 import hu.bme.aut.api.dto.OrderDTO;
 import hu.bme.aut.api.dto.ProductDTO;
 import io.qt.widgets.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class MyWindow extends QWidget {
     public MyWindow() {
         super();
@@ -190,24 +192,32 @@ public class MyWindow extends QWidget {
         return "%.2f".formatted(price);
     }
 
+    // GET api/products
+    // GET api/products/category/{category}
+    // GET api/products/contains/{contains}
     //an empty list will be displayed as no products
     private ArrayList<ProductDTO> queryProducts(String name, String category) {
         return new ArrayList<>();
     }
 
+    // POST api/orders/{cardid}
     private void sendOrder() {
     }
 
+    // GET api/orders
     //an empty list will be displayed as no orders
     private ArrayList<OrderDTO> getOrders() {
         return new ArrayList<>();
     }
 
+    // GET api/basket
     //null will be displayed as an empty basket
     private BasketDTO getBasket() {
         return null;
     }
 
+    // DELETE
+    // PUT
     private void changeBasket(Long productId, int newAmount) {
 
     }
