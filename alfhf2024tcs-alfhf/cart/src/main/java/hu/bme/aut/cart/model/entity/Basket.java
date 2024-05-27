@@ -18,7 +18,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
+@Builder(toBuilder = true)
 @EqualsAndHashCode(of = "basketId")
 @Slf4j
 public class Basket {

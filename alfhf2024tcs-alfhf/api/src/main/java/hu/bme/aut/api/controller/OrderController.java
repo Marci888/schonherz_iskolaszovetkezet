@@ -75,4 +75,27 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
+    /**
+     * Creates an order for a user with the specified card ID.
+     *
+     * @param userToken The user token from the request header.
+     * @param cardId The ID of the card used for the order.
+     * @return ResponseEntity containing the created OrderDTO or an error message.
+     */
+    @PostMapping("/{cardId}")
+    public CompletableFuture<ResponseEntity<?>> createOrderForUser(@RequestHeader("User-Token") String userToken,
+                                                                   @PathVariable String cardId) {
+        log.info("Request to create order for user with card ID: {}", cardId);
+        return orderService.createOrderForUser(userToken, cardId)
+                .thenApply(response -> {
+                    if (response.isSuccess() && response.getData() != null) {
+                        log.info("Order created successfully: {}", response.getData());
+                        return ResponseEntity.ok(response.getData());
+                    } else {
+                        log.error("Failed to create order: {}", response.getErrorMessage());
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getErrorMessage());
+                    }
+                });
+    }
 }

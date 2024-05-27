@@ -58,7 +58,7 @@ public class BasketController {
         try {
             log.debug("Adding product {} with quantity {} to basket", productId, quantity);
             BasketDTO basketDTO = basketService.addToBasket(userToken, productId, quantity);
-            log.info("Product {} with quantity {} added to basket", productId, quantity);
+            log.info("Products added to basket: {}", basketDTO.getProducts().toArray());
             return ResponseEntity.ok(basketDTO);
         } catch (IllegalArgumentException e) {
             log.error("Error adding product to basket: {}", e.getMessage());

@@ -54,8 +54,8 @@ public class UserBankCardValidationService {
      * @throws CoreServiceException if the card does not exist or does not have sufficient funds.
      */
     @Transactional
-    public boolean checkCardBalance(String cardId, int price) {
-        Optional<UserBankCard> cardOpt = userBankCardRepository.findById(Long.valueOf(cardId));
+    public boolean checkCardBalance(String cardId, Double price) {
+        Optional<UserBankCard> cardOpt = userBankCardRepository.findByCardId(cardId);
         if (cardOpt.isEmpty() || cardOpt.get().getAmount() < price) {
             log.error("Balance check failed for card ID: {}. Required: {}, Available: {}", cardId, price, cardOpt.map(UserBankCard::getAmount).orElse(0.0));
             throw new CoreServiceException("A felhasználónak nincs elegendő pénze hogy megvásárolja a jegyet!", "10101");
