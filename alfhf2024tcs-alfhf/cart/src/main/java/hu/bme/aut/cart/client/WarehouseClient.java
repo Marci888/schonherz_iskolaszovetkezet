@@ -40,7 +40,7 @@ public class WarehouseClient {
                 .pathSegment("products", productId.toString())
                 .build()
                 .toUri();
-        log.debug("Fetching product details from URI: {}", uri);
+        log.info("Fetching product details from URI: {}", uri);
 
         try {
             ResponseEntity<ProductDTO> response = restTemplate.getForEntity(uri, ProductDTO.class);

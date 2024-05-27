@@ -1,6 +1,7 @@
 package hu.bme.aut.cart.controller;
 
 import hu.bme.aut.cart.dto.OrderDTO;
+import hu.bme.aut.cart.model.entity.Order;
 import hu.bme.aut.cart.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,25 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/{cardId}")
+    public ResponseEntity<OrderDTO> createOrderForUser(
+            @RequestHeader("User-Token") String userToken,
+            @PathVariable String cardId) {
+        log.info("Received request to create order for user with card ID {}", cardId);
+        try {
+            OrderDTO orderDTO = orderService.createOrderForUser(userToken, cardId);
+            log.info("Order created successfully with ID {}", orderDTO.getOrderId());
+            return ResponseEntity.ok(orderDTO);
+        } catch (IllegalStateException ex) {
+            log.error("Failed to create order for user: {}", ex.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception ex) {
+            log.error("Error creating order for user: {}", ex.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error creating order", ex);
+        }
+
+    }
+
     /**
      * Creates an order from a specific basket identified by basket ID.
      *
@@ -69,22 +89,22 @@ public class OrderController {
      * @param cardId The ID of the card used for the order.
      * @return An OrderDTO representing the newly created order.
      */
-    @PostMapping("/{basketId}/{cardId}")
-    public ResponseEntity<OrderDTO> createOrderFromBasket(
-            @RequestHeader("User-Token") String userToken,
-            @PathVariable Long basketId,
-            @PathVariable String cardId) {
-        log.debug("Received request to create order from basket ID {}", basketId);
-        try {
-            OrderDTO orderDTO = orderService.createOrderFromBasket(basketId, cardId, userToken);
-            log.info("Order created successfully from basket ID {}", basketId);
-            return ResponseEntity.ok(orderDTO);
-        } catch (IllegalStateException ex) {
-            log.error("Failed to create order from basket ID {}: {}", basketId, ex.getMessage());
-            return ResponseEntity.badRequest().body(null);
-        } catch (Exception ex) {
-            log.error("Error creating order from basket ID {}: {}", basketId, ex.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error creating order", ex);
-        }
-    }
+//    @PostMapping("/{basketId}/{cardId}")
+//    public ResponseEntity<OrderDTO> createOrderFromBasket(
+//            @RequestHeader("User-Token") String userToken,
+//            @PathVariable Long basketId,
+//            @PathVariable String cardId) {
+//        log.debug("Received request to create order from basket ID {}", basketId);
+//        try {
+//            OrderDTO orderDTO = orderService.createOrderFromBasket(basketId, cardId, userToken);
+//            log.info("Order created successfully from basket ID {}", basketId);
+//            return ResponseEntity.ok(orderDTO);
+//        } catch (IllegalStateException ex) {
+//            log.error("Failed to create order from basket ID {}: {}", basketId, ex.getMessage());
+//            return ResponseEntity.badRequest().body(null);
+//        } catch (Exception ex) {
+//            log.error("Error creating order from basket ID {}: {}", basketId, ex.getMessage());
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error creating order", ex);
+//        }
+//    }
 }

@@ -35,6 +35,12 @@ public class OrderService {
     private final ModelMapper modelMapper;
     private final CoreClient coreClient;
 
+    @Transactional
+    public OrderDTO createOrderForUser(String userToken, String cardId) {
+        BasketDTO basketDTO = basketService.getBasketByUser(userToken);
+        return createOrderFromBasket(basketDTO.getBasketId(), cardId, userToken);
+    }
+
     /**
      * Creates an order from a specified basket.
      *
@@ -44,8 +50,7 @@ public class OrderService {
      * @return An OrderDTO containing detailed information about the newly created order.
      * @throws IllegalStateException if an order already exists for the specified basket.
      */
-    @Transactional
-    public OrderDTO createOrderFromBasket(Long basketId, String cardId, String userToken) {
+    private OrderDTO createOrderFromBasket(Long basketId, String cardId, String userToken) {
         log.debug("Creating order from basket ID {}", basketId);
         Basket basket = basketService.findBasketById(basketId);
 
@@ -112,7 +117,7 @@ public class OrderService {
      * @param totalAmount The total amount to check against the card balance.
      * @param userToken The user's token for validation.
      */
-    public void validateCard(String cardId, double totalAmount, String userToken) {
+    public void validateCard(String cardId, Double totalAmount, String userToken) {
         log.debug("Validating card ID {} for amount {}", cardId, totalAmount);
         CoreValidationResponseDTO response = coreClient.validateCard(userToken, cardId, totalAmount);
         if (!response.isSuccess()) {

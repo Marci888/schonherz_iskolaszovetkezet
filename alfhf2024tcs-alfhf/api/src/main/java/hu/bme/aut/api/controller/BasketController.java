@@ -21,7 +21,7 @@ public class BasketController {
     private final BasketService basketService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<BasketDTO>> getBasketById(@RequestHeader("User-Token") String userToken) {
+    public ResponseEntity<ApiResponse<BasketDTO>> getBasketByUser(@RequestHeader("User-Token") String userToken) {
         log.info("Request to retrieve basket for user");
         try {
             CompletableFuture<ApiResponse<BasketDTO>> future = basketService.getBasketByUser(userToken);
@@ -84,7 +84,7 @@ public class BasketController {
         try {
             CompletableFuture<ApiResponse<BasketDTO>> future = basketService.addToBasket(userToken, productId, quantity);
             ApiResponse<BasketDTO> response = future.get();
-            log.debug("Product added successfully to basket.");
+            log.info("Product added successfully to basket {}", response.getData().toString());
             return ResponseEntity.ok(response);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();

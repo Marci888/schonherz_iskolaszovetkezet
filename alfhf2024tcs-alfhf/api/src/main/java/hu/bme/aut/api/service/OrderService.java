@@ -1,5 +1,8 @@
 package hu.bme.aut.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.bme.aut.api.dto.ApiResponse;
 import hu.bme.aut.api.dto.ErrorResponseDTO;
 import hu.bme.aut.api.dto.OrderDTO;
@@ -30,17 +33,11 @@ public class OrderService {
 
     private final RestTemplate restTemplate;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
 
     @Value("${cart.service.url}")
     private String cartServiceBaseUrl;
 
-    /**
-     * Retrieves all orders associated with a specific user token asynchronously.
-     * Handles both successful and error responses from the CART service.
-     *
-     * @param userToken The user token for which to fetch orders.
-     * @return CompletableFuture of ApiResponse containing a list of OrderDTOs or an error message.
-     */
     @Async
     public CompletableFuture<ApiResponse<List<OrderDTO>>> getOrdersByUserToken(String userToken) {
         String url = cartServiceBaseUrl + "/orders";
@@ -48,50 +45,56 @@ public class OrderService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("User-Token", userToken);
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                List<OrderDTO> orders = modelMapper.map(response.getBody(), new TypeToken<List<OrderDTO>>() {}.getType());
-                log.info("Successfully retrieved orders for user token: {}", userToken);
-                return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, orders));
-            } else {
-                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
-                log.warn("Failed to retrieve orders: {}", error.getErrorMessage());
-                return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
-            }
-        } catch (HttpClientErrorException ex) {
-            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
-            log.error("HTTP error while fetching orders for user token: {}", userToken, ex);
-            return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
-        }
+        return sendRequest(url, HttpMethod.GET, requestEntity, new TypeReference<List<OrderDTO>>() {});
     }
 
-    /**
-     * Retrieves a specific order by its ID asynchronously.
-     * Handles both successful and error responses from the CART service.
-     *
-     * @param orderId The ID of the order to retrieve.
-     * @return CompletableFuture of ApiResponse containing the OrderDTO or an error message.
-     */
     @Async
     public CompletableFuture<ApiResponse<OrderDTO>> getOrderById(Long orderId) {
         String url = cartServiceBaseUrl + "/orders/" + orderId;
         log.debug("Requesting order with ID: {}", orderId);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(new HttpHeaders());
+        return sendRequest(url, HttpMethod.GET, requestEntity, new TypeReference<OrderDTO>() {});
+    }
+
+    @Async
+    public CompletableFuture<ApiResponse<OrderDTO>> createOrderForUser(String userToken, String cardId) {
+        String url = cartServiceBaseUrl + "/orders/" + cardId;
+        log.debug("Creating order for user with card ID: {}", cardId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Token", userToken);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        return sendRequest(url, HttpMethod.POST, requestEntity, new TypeReference<OrderDTO>() {});
+    }
+
+    private <T> CompletableFuture<ApiResponse<T>> sendRequest(String url, HttpMethod method, HttpEntity<?> requestEntity, TypeReference<T> responseType) {
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, method, requestEntity, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                OrderDTO orderDTO = modelMapper.map(response.getBody(), OrderDTO.class);
-                log.info("Successfully retrieved order with ID: {}", orderId);
-                return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, orderDTO));
+                if (response.getBody() != null) {
+                    T data = objectMapper.readValue(response.getBody(), responseType);
+                    log.info("Request to {} succeeded: {}", url, data);
+                    return CompletableFuture.completedFuture(new ApiResponse<>(true, null, null, data));
+                }
+                log.warn("Request to {} succeeded but response body is null", url);
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, "Response body is null", "1000", null));
             } else {
-                ErrorResponseDTO error = modelMapper.map(response.getBody(), ErrorResponseDTO.class);
-                log.warn("Failed to retrieve order: {}", error.getErrorMessage());
+                ErrorResponseDTO error = objectMapper.readValue(response.getBody(), ErrorResponseDTO.class);
+                log.warn("Request to {} failed: {}", url, error.getErrorMessage());
                 return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
             }
         } catch (HttpClientErrorException ex) {
-            ErrorResponseDTO error = modelMapper.map(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
-            log.error("HTTP error while fetching order with ID: {}", orderId, ex);
+            ErrorResponseDTO error = null;
+            try {
+                error = objectMapper.readValue(ex.getResponseBodyAsString(), ErrorResponseDTO.class);
+            } catch (JsonProcessingException e) {
+                log.error("Error during request to {}", url, e);
+                return CompletableFuture.completedFuture(new ApiResponse<>(false, "Error during request", "1000", null));
+            }
+            log.error("HTTP error during request to {}: {}", url, error.getErrorMessage());
             return CompletableFuture.completedFuture(new ApiResponse<>(false, error.getErrorMessage(), error.getErrorCode(), null));
+        } catch (Exception e) {
+            log.error("Error during request to {}", url, e);
+            return CompletableFuture.completedFuture(new ApiResponse<>(false, "Error during request", "1000", null));
         }
     }
 }
