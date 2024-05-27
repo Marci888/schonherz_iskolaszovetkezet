@@ -5,7 +5,7 @@ Csapatnév:alfhf
 Csapattagok Neptun kóddal:
 - Szászvári Márton Péter OKR8HA
 - Sölétromos Benedek AFXX34
-- Szabó-Feltóthy Pál (ABC123)
+- Szabó-Feltóthy Pál (YQ9D8Q)
 
 Bemutató videó URL: 
 (Ugye minden olyan dolog szerepel benne a kiírásnak megfelelően, amire pontot szeretnétek kapni?)
@@ -26,7 +26,7 @@ Alap feladatok (maximális kapható pontokkal):
 - [X] 2p: Spring Data használata
 - [X] 3p: Függőséginjektálás Spring alapokon
 - [X] 3p: Az alapértelmezettől eltérő tranzakció kezelés.
-- [ ] 5p: Megfelelő biztonsági óvintézkedések (authorizáció, SQL injection kivédése, szerver oldali validáció, biztonságos jelszó tárolás stb.)
+- [X] 5p: Megfelelő biztonsági óvintézkedések (authorizáció, SQL injection kivédése, szerver oldali validáció, biztonságos jelszó tárolás stb.)
 - [X] 2p: Unit tesztek használata (Jelentős lefedettség esetén további bónusz pontokat ér.)
 - [ ] 3p: Qt alatt signals and slots mechanizmus használata.
 - [X] 3p: Logolási mechanizmus használata loglevel támogatással.
