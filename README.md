@@ -1,6 +1,6 @@
 **Házi feladat**
 
-Csapatnév:
+Csapatnév:alfhf
 
 Csapattagok Neptun kóddal:
 - Szászvári Márton Péter OKR8HA
