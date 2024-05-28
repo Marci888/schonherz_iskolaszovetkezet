@@ -176,7 +176,7 @@ public class MyWindow extends QWidget {
                     .findAny().orElse(0));
             spinBox.oldValue = spinBox.getValue();
             spinBox.valueChanged.connect((Integer value) -> {
-                if (!changeRemoteBasket(product.getProductId(), value)) {
+                if (!changeRemoteBasket(product, value)) {
                     spinBox.blockSignals(true);
                     spinBox.setValue(spinBox.oldValue);
                     spinBox.blockSignals(false);
@@ -454,23 +454,23 @@ public class MyWindow extends QWidget {
         return parseBasket2(cart);
     }
 
-    private boolean changeRemoteBasket(Long productId, Integer amount) {
+    private boolean changeRemoteBasket(ProductDTO localProduct, Integer amount) {
         BasketDTO cart = getRemoteBasket();
         int previousAmount = cart.getProducts().stream()
-                .filter(x -> {
-                    if (x.getProductId() == null) {
-                        log.info("blocked null id product");
-                        return false;
-                    }
-                    return true;
-                })
-                .filter(x -> x.getProductId().equals(productId))
+//                .filter(x -> {
+//                    if (x.getProductId() == null) {
+//                        log.info("blocked null id product");
+//                        return false;
+//                    }
+//                    return true;
+//                })
+                .filter(x -> x.getName().equals(localProduct.getName()))
                 .map(x -> x.getQuantity())
                 .findAny().orElse(0);
         if (amount == previousAmount) return true;
         if (amount < previousAmount) {
             WebClient.create("http://localhost:8084").delete()
-                    .uri("/api/basket/{productId}/{productQuantity}", productId.toString(), String.valueOf(previousAmount - amount))
+                    .uri("/api/basket/{productId}/{productQuantity}", localProduct.getProductId().toString(), String.valueOf(previousAmount - amount))
                     .header("User-Token", getUserToken(getUserName()))
                     .retrieve()
                     .toEntity(String.class)
@@ -478,7 +478,7 @@ public class MyWindow extends QWidget {
             return true;
         } else {
             WebClient.create("http://localhost:8084").put()
-                    .uri("/api/basket/{productId}/{productQuantity}", productId.toString(), String.valueOf(amount - previousAmount))
+                    .uri("/api/basket/{productId}/{productQuantity}", localProduct.getProductId().toString(), String.valueOf(amount - previousAmount))
                     .header("User-Token", getUserToken(getUserName()))
                     .retrieve()
                     .toEntity(String.class)
@@ -490,12 +490,12 @@ public class MyWindow extends QWidget {
     private void pushLocalBasket() {
         clearRemoteBasket();
         BasketDTO localCart = getLocalBasket();
-        localCart.getProducts().forEach(x -> changeRemoteBasket(x.getProductId(), x.getQuantity()));
+        localCart.getProducts().forEach(x -> changeRemoteBasket(x, x.getQuantity()));
     }
 
     private void clearRemoteBasket() {
-        BasketDTO remoteCart = getRemoteBasket();
-        remoteCart.getProducts().forEach(x -> changeRemoteBasket(x.getProductId(), 0)); //bit weird
+//        BasketDTO remoteCart = getRemoteBasket();
+//        remoteCart.getProducts().forEach(x -> changeRemoteBasket(x, 0)); //bit weird
     }
 
     private static void clearRemoteBaskets() {
