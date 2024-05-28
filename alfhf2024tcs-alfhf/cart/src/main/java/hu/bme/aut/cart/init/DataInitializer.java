@@ -33,11 +33,11 @@ public class DataInitializer implements CommandLineRunner {
         orderRepository.deleteAll();
 
         log.info("Creating basket and order");
-        Basket basket = createBasket();
-        Order order = createOrder(basket);
+        //Basket basket = createBasket();
+        //Order order = createOrder(basket);
 
-        basketRepository.save(basket);
-        orderRepository.save(order);
+        //basketRepository.save(basket);
+        //orderRepository.save(order);
 
         log.info("Data initialization complete.");
     }
