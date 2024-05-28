@@ -370,7 +370,7 @@ public class MyWindow extends QWidget {
                     .orderDate(Date.from(ZonedDateTime.parse(object.getString("orderDate"), DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()))
                     .orderStatus(object.getString("orderStatus"))
                     .totalAmount(object.getDouble("totalAmount"))
-                    .basket(parseBasket(object.getJSONObject("basket")))
+                    .basket(parseBasket2(object.getJSONObject("basket")))
                     .build());
         }
         return result;
@@ -504,8 +504,37 @@ public class MyWindow extends QWidget {
     }
 
     private void clearRemoteBasket() {
-//        BasketDTO remoteCart = getRemoteBasket();
-//        remoteCart.getProducts().forEach(x -> changeRemoteBasket(x, 0)); //bit weird
+//        BasketDTO remoteBasket = getRemoteBasket();
+//        int amount1 = remoteBasket.getProducts().stream()
+//                .filter(x -> getProductIdFromName(x.getName()) == 1L)
+//                .map(x -> x.getQuantity())
+//                .findAny().orElse(0);
+//        if (amount1 != 0) {
+//            WebClient.create("http://localhost:8084").delete()
+//                    .uri("/api/basket/{productId}/{quantity}", "1", String.valueOf(amount1)).retrieve()
+//                    .toEntity(String.class)
+//                    .block();
+//        }
+//        int amount2 = remoteBasket.getProducts().stream()
+//                .filter(x -> getProductIdFromName(x.getName()) == 2L)
+//                .map(x -> x.getQuantity())
+//                .findAny().orElse(0);
+//        if (amount2 != 0) {
+//            WebClient.create("http://localhost:8084").delete()
+//                    .uri("/api/basket/{productId}/{quantity}", "2", String.valueOf(amount2))
+//                    .retrieve()
+//                    .toEntity(String.class)
+//                    .block();
+//        }
+//        int amount3 = remoteBasket.getProducts().stream()
+//                .filter(x -> getProductIdFromName(x.getName()) == 3L)
+//                .map(x -> x.getQuantity())
+//                .findAny().orElse(0);
+//        if (amount3 != 0) {
+//            WebClient.create("http://localhost:8084").delete()
+//                    .uri("/api/basket/{productId}/{quantity}", "3", String.valueOf(amount3)).retrieve()
+//                    .toEntity(String.class)
+//                    .block();        }
     }
 
     private static void clearRemoteBaskets() {
