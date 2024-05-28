@@ -493,6 +493,16 @@ public class MyWindow extends QWidget {
         localCart.getProducts().forEach(x -> changeRemoteBasket(x, x.getQuantity()));
     }
 
+    long getProductIdFromName(String name) {
+        if (name.equals("Smartphone")) {
+            return 1L;
+        }
+        if (name.equals("Laptop")) {
+            return 2L;
+        }
+        return 3L;
+    }
+
     private void clearRemoteBasket() {
 //        BasketDTO remoteCart = getRemoteBasket();
 //        remoteCart.getProducts().forEach(x -> changeRemoteBasket(x, 0)); //bit weird
