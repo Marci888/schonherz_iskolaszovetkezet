@@ -45,6 +45,8 @@ public class MyWindow extends QWidget {
         searchForm.addRow("name:", nameLineEdit);
         QComboBox categoryComboBox = new QComboBox(searchTab);
         categoryComboBox.addItem("<all>");
+        categoryComboBox.addItem("electronics");
+        categoryComboBox.addItem("books");
         searchForm.addRow("category:", categoryComboBox);
         QPushButton searchButton = new QPushButton("search", searchTab);
         searchForm.addRow(searchButton);
@@ -70,29 +72,19 @@ public class MyWindow extends QWidget {
         ordersTable.setColumnCount(4);
         ordersTable.setHorizontalHeaderLabels(List.of("Date", "Status", "Price", "Contents"));
 
-//        //this is a test
-//        setOrdersTabContents(List.of(new OrderDTO(0L, Date.valueOf("1010-10-10"), "completed", 250.0, new BasketDTO(
-//        0L, "completed", 250.0, List.of(new ProductDTO(0L, "name", "category", 250.0, 1))))));
-
         Runnable refreshCurrentTab = () -> {
-            String currentTab = tabWidget.currentWidget().objectName();
-            switch (currentTab) {
-                case "searchTab" -> setProductSpinboxTableContents(searchResults, searchResultsTable);
-                case "cartTab" -> {
-                    BasketDTO basket = getBasket();
-                    if (basket != null) {
-                        setCartTabContents(basket);
-                    }
-                }
-                case "ordersTab" -> {
-                    List<OrderDTO> orders = getOrders();
-                    if (orders != null) {
-                        setOrdersTabContents(orders);
-                    }
-                }
+            QWidget currentTab = tabWidget.currentWidget();
+            if (currentTab == null) {
+                throw new IllegalStateException("There is no active tab.");
+            }
+            String currentTabName = currentTab.objectName();
+            switch (currentTabName) {
+                case "searchTab" -> setSearchResultsTableContents(searchResults);
+                case "cartTab" -> setCartTabContents();
+                case "ordersTab" -> setOrdersTabContents();
                 default ->
                     //TODO this is for debug purposes
-                        throw new RuntimeException("refreshCurrentTab currentWidget has no match");
+                        throw new IllegalStateException("Could not match any tab.");
             }
         };
         userComboBox.currentTextChanged.connect((String s) -> refreshCurrentTab.run());
@@ -104,44 +96,58 @@ public class MyWindow extends QWidget {
         searchButton.clicked.connect(() -> {
             String name = nameLineEdit.text();
             String category = categoryComboBox.currentText();
-            if (queryProducts(name, category)) {
-                setSearchResultsTableContents(searchResults);
-            }
+            searchProducts(name, category);
         });
     }
 
     private final QTableWidget searchResultsTable;
     List<ProductDTO> searchResults = new ArrayList<>();
     private void setSearchResultsTableContents(List<ProductDTO> products) {
-        setProductSpinboxTableContents(products, searchResultsTable);
+        BasketDTO cart = getLocalBasket();
+        searchResultsTable.setRowCount(products.size());
+        for (int i = 0; i < products.size(); i++) {
+            ProductDTO product = products.get(i);
+            searchResultsTable.setItem(i, 0, new QTableWidgetItem(product.getName()));
+            searchResultsTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
+            searchResultsTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
+            QSpinBox spinBox = new QSpinBox(searchResultsTable);
+            spinBox.setValue(cart.getProducts().stream()
+                    .filter(x -> x.getProductId().equals(product.getProductId()))
+                    .map(ProductDTO::getQuantity)
+                    .findAny().orElse(0));
+            spinBox.valueChanged.connect((Integer value) -> {
+                changeLocalBasket(product.getProductId(), value);
+            });
+            searchResultsTable.setCellWidget(i, 4, spinBox);
+        }
     }
+
     private final QTableWidget cartTable;
     private final QLabel totalLabel;
-    private void setCartTabContents(BasketDTO basket) {
-        String priceString = basket == null ? priceToString(0.0) : priceToString(basket.getSubtotalAmount());
-        totalLabel.setText("Total: " + priceString);
-        List<ProductDTO> products = basket == null ? new ArrayList<>() : basket.getProducts();
-        setProductSpinboxTableContents(products, cartTable);
-    }
-    private void setProductSpinboxTableContents(List<ProductDTO> products, QTableWidget table) {
+    private void setCartTabContents() {
+        BasketDTO cart = getRemoteBasket();
+        if (cart == null) {
+            totalLabel.setText("Total: " + priceToString(0.0));
+            cartTable.setRowCount(0);
+            return;
+        }
+        totalLabel.setText("Total: " + priceToString(cart.getSubtotalAmount()));
+
+        List<ProductDTO> products = cart.getProducts();
         cartTable.setRowCount(products.size());
-        BasketDTO cart = getBasket();
         for (int i = 0; i < products.size(); i++) {
             ProductDTO product = products.get(i);
             cartTable.setItem(i, 0, new QTableWidgetItem(product.getName()));
             cartTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
             cartTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
             var spinBox = new QSpinBox(cartTable) {public int oldValue = 0;};
-            if (cart != null) {
-                spinBox.setValue(cart.getProducts().stream()
-                        .filter(x -> x.getProductId().equals(product.getProductId()))
-                        .map(ProductDTO::getQuantity)
-                        .findAny().orElse(0));
-                spinBox.oldValue = spinBox.getValue();
-            }
-            spinBox.valueChanged.connect(() -> {
-                int value = spinBox.getValue();
-                if (changeBasket(product.getProductId(), value)) {
+            spinBox.setValue(cart.getProducts().stream()
+                    .filter(x -> x.getProductId().equals(product.getProductId()))
+                    .map(ProductDTO::getQuantity)
+                    .findAny().orElse(0));
+            spinBox.oldValue = spinBox.getValue();
+            spinBox.valueChanged.connect((Integer value) -> {
+                if (changeRemoteBasket(product.getProductId(), value)) {
                     spinBox.blockSignals(true);
                     spinBox.setValue(spinBox.oldValue);
                     spinBox.blockSignals(false);
@@ -154,7 +160,12 @@ public class MyWindow extends QWidget {
     }
 
     private final QTableWidget ordersTable;
-    private void setOrdersTabContents(List<OrderDTO> orders) {
+    private void setOrdersTabContents() {
+        ordersTable.setRowCount(0);
+        List<OrderDTO> orders = getOrders();
+        if (orders == null) {
+            return;
+        }
         ordersTable.setRowCount(orders.size());
         for (int i = 0; i < orders.size(); i++) {
             OrderDTO order = orders.get(i);
@@ -162,13 +173,11 @@ public class MyWindow extends QWidget {
             ordersTable.setItem(i, 1, new QTableWidgetItem(order.getOrderStatus()));
             ordersTable.setItem(i, 2, new QTableWidgetItem(priceToString(order.getTotalAmount())));
             QPushButton showDetailsButton = new QPushButton("show", ordersTable);
-            showDetailsButton.clicked.connect(() -> {
-                showOrderContents(order.getBasket());
-            });
+            showDetailsButton.clicked.connect(() -> showOrderContents(order.getBasket().getProducts()));
             ordersTable.setCellWidget(i, 3, showDetailsButton);
         }
     }
-    private void showOrderContents(BasketDTO basket) {
+    private void showOrderContents(List<ProductDTO> products) {
         QDialog orderContentsDialog = new QDialog(this);
         QVBoxLayout dialogLayout = new QVBoxLayout(orderContentsDialog);
 
@@ -176,9 +185,9 @@ public class MyWindow extends QWidget {
         dialogLayout.addWidget(orderContentsTable);
         orderContentsTable.setColumnCount(5);
         orderContentsTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "Amount", "Total"));
-        orderContentsTable.setRowCount(basket.getProducts().size());
-        for (int i = 0; i < basket.getProducts().size(); i++) {
-            ProductDTO product = basket.getProducts().get(i);
+        orderContentsTable.setRowCount(products.size());
+        for (int i = 0; i < products.size(); i++) {
+            ProductDTO product = products.get(i);
             orderContentsTable.setItem(i, 0, new QTableWidgetItem(product.getName()));
             orderContentsTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
             orderContentsTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
@@ -189,7 +198,6 @@ public class MyWindow extends QWidget {
         orderContentsDialog.exec();
     }
 
-    //TODO-------------------------
     private final QComboBox userComboBox;
     private String getUserName() {
         return userComboBox.getCurrentText();
@@ -217,8 +225,7 @@ public class MyWindow extends QWidget {
     // GET api/products/category/{category}
     // GET api/products/contains/{contains}
     //an empty list will be displayed as no products
-    private boolean queryProducts(String name, String category) {
-        return false;
+    private void searchProducts(String name, String category) {
     }
 
     // POST api/orders/{cardid}
@@ -231,15 +238,31 @@ public class MyWindow extends QWidget {
         return new ArrayList<>();
     }
 
-    // GET api/basket
-    //null will be displayed as an empty basket
-    private BasketDTO getBasket() {
+//    // GET api/basket
+//    //null will be displayed as an empty basket
+//    private BasketDTO getBasket() {
+//        return null;
+//    }
+//
+//    // DELETE
+//    // PUT
+//    private boolean changeBasket(Long productId, int newAmount) {
+//        return false;
+//    }
+
+    private BasketDTO getLocalBasket() {
         return null;
     }
 
-    // DELETE
-    // PUT
-    private boolean changeBasket(Long productId, int newAmount) {
+    private void changeLocalBasket(Long productId, Integer amount) {
+
+    }
+
+    private BasketDTO getRemoteBasket() {
+        return null;
+    }
+
+    private boolean changeRemoteBasket(Long productId, Integer amount) {
         return false;
     }
 }
