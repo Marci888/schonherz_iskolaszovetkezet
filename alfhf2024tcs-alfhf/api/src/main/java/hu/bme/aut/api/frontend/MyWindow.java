@@ -76,17 +76,19 @@ public class MyWindow extends QWidget {
 
         Runnable refreshCurrentTab = () -> {
             String currentTab = tabWidget.currentWidget().objectName();
-            if (currentTab.equals("searchTab")) {
-                setProductSpinboxTableContents(searchResults, searchResultsTable);
-            } else if (currentTab.equals("cartTab")) {
-                BasketDTO basket = getBasket();
-                setCartTabContents(basket);
-            } else if (currentTab.equals("ordersTab")) {
-                List<OrderDTO> orders = getOrders();
-                setOrdersTabContents(orders);
-            } else {
-                //TODO this is for debug purposes
-                throw new RuntimeException("refreshCurrentTab currentWidget has no match");
+            switch (currentTab) {
+                case "searchTab" -> setProductSpinboxTableContents(searchResults, searchResultsTable);
+                case "cartTab" -> {
+                    BasketDTO basket = getBasket();
+                    setCartTabContents(basket);
+                }
+                case "ordersTab" -> {
+                    List<OrderDTO> orders = getOrders();
+                    setOrdersTabContents(orders);
+                }
+                default ->
+                    //TODO this is for debug purposes
+                        throw new RuntimeException("refreshCurrentTab currentWidget has no match");
             }
         };
         userComboBox.currentTextChanged.connect((String s) -> {
@@ -130,17 +132,24 @@ public class MyWindow extends QWidget {
             cartTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
             cartTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
             cartTable.setItem(i, 3, new QTableWidgetItem(product.getQuantity().toString()));
-            QSpinBox spinBox = new QSpinBox(cartTable);
+            var spinBox = new QSpinBox(cartTable) {public int oldValue = 0;};
             spinBox.setMaximum(product.getQuantity());
             if (cart != null) {
                 spinBox.setValue(cart.getProducts().stream()
                         .filter(x -> x.getProductId().equals(product.getProductId()))
                         .map(ProductDTO::getQuantity)
                         .findAny().orElse(0));
+                spinBox.oldValue = spinBox.getValue();
             }
             spinBox.valueChanged.connect(() -> {
                 int value = spinBox.getValue();
-                changeBasket(product.getProductId(), value);
+                if (changeBasket(product.getProductId(), value)) {
+                    spinBox.blockSignals(true);
+                    spinBox.setValue(spinBox.oldValue);
+                    spinBox.blockSignals(false);
+                } else {
+                    spinBox.oldValue = value;
+                }
             });
             cartTable.setCellWidget(i, 5, spinBox);
         }
@@ -185,7 +194,21 @@ public class MyWindow extends QWidget {
     //TODO-------------------------
     private final QComboBox userComboBox;
     private String getUserName() {
-        return userComboBox.currentText();
+        return userComboBox.getCurrentText();
+    }
+    private static String getCardId(String userName) {
+        if (userName.equals("John Doe")) {
+            return "C0001";
+        } else {
+            return "C0002";
+        }
+    }
+    private static String getUserToken(String userName) {
+        if (userName.equals("John Doe")) {
+            return "am9obkBleGFtcGxlLmNvbSYx";
+        } else {
+            return "YWxpY2VAZXhhbXBsZS5jb20mMg==";
+        }
     }
 
     private static String priceToString(double price) {
@@ -218,7 +241,7 @@ public class MyWindow extends QWidget {
 
     // DELETE
     // PUT
-    private void changeBasket(Long productId, int newAmount) {
-
+    private boolean changeBasket(Long productId, int newAmount) {
+        return false;
     }
 }
