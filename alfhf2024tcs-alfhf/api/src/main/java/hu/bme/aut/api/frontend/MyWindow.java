@@ -12,6 +12,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +75,7 @@ public class MyWindow extends QWidget {
         cartTable.setColumnCount(4);
         cartTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In cart"));
 
-        QPushButton buyButton = new QPushButton("buy", cartTab);
+        buyButton = new QPushButton("buy", cartTab);
         buyButton.setEnabled(false);
         cartTabLayout.addWidget(buyButton);
 
@@ -139,8 +141,10 @@ public class MyWindow extends QWidget {
     private final QTableWidget cartTable;
     private final QLabel totalLabel;
     private void setCartTabContents() {
+        pushLocalBasket();
         BasketDTO cart = getRemoteBasket();
         if (cart == null) {
+            buyButton.setEnabled(false);
             totalLabel.setText("Total: " + priceToString(0.0));
             cartTable.setRowCount(0);
             return;
@@ -155,8 +159,19 @@ public class MyWindow extends QWidget {
             cartTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
             cartTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
             var spinBox = new QSpinBox(cartTable) {public int oldValue = 0;};
+//            spinBox.setValue(cart.getProducts().stream()
+//                    .filter(x -> {
+//                        if (x.getProductId() == null) {
+//                            log.info("blocked null id product");
+//                            return false;
+//                        }
+//                        return true;
+//                    })
+//                    .filter(x -> x.getProductId().equals(product.getProductId()))
+//                    .map(ProductDTO::getQuantity)
+//                    .findAny().orElse(0));
             spinBox.setValue(cart.getProducts().stream()
-                    .filter(x -> x.getProductId().equals(product.getProductId()))
+                    .filter(x -> x.getName().equals(product.getName()))
                     .map(ProductDTO::getQuantity)
                     .findAny().orElse(0));
             spinBox.oldValue = spinBox.getValue();
@@ -171,6 +186,7 @@ public class MyWindow extends QWidget {
             });
             cartTable.setCellWidget(i, 3, spinBox);
         }
+        buyButton.setEnabled(true);
     }
 
     private final QTableWidget ordersTable;
@@ -213,6 +229,7 @@ public class MyWindow extends QWidget {
         orderContentsDialog.exec();
     }
 
+    private final QPushButton buyButton;
     private final QComboBox userComboBox;
     private String getUserName() {
         return userComboBox.getCurrentText();
@@ -262,7 +279,12 @@ public class MyWindow extends QWidget {
             JSONArray data = body.getJSONArray("data");
             for (int i = 0; i < data.length(); i++) {
                 JSONObject object = data.getJSONObject(i);
-                result.add(parseProduct(object));
+                ProductDTO newProduct = parseProduct(object);
+                if (newProduct.getProductId() == null) {
+                    log.info("blocked null id product");
+                } else {
+                    result.add(newProduct);
+                }
             }
         } else if (!name.isEmpty() && category.equals("<all>")) {
             Mono<ResponseEntity<String>> productsMono = webClient.get()
@@ -275,7 +297,12 @@ public class MyWindow extends QWidget {
             JSONArray data = body.getJSONArray("data");
             for (int i = 0; i < data.length(); i++) {
                 JSONObject object = data.getJSONObject(i);
-                result.add(parseProduct(object));
+                ProductDTO product = parseProduct(object);
+                if (product.getProductId() == null) {
+                    log.info("blocked null id product");
+                } else {
+                    result.add(product);
+                }
             }
         } else {
             Mono<ResponseEntity<String>> productsMono = webClient.get()
@@ -288,7 +315,12 @@ public class MyWindow extends QWidget {
             JSONArray data = body.getJSONArray("data");
             for (int i = 0; i < data.length(); i++) {
                 JSONObject object = data.getJSONObject(i);
-                result.add(parseProduct(object));
+                ProductDTO product = parseProduct(object);
+                if (product.getProductId() == null) {
+                    log.info("blocked null id product");
+                } else {
+                    result.add(product);
+                }
             }
             if (!name.isEmpty()) {
                 result = new ArrayList<>(result.stream()
@@ -311,9 +343,11 @@ public class MyWindow extends QWidget {
                 .build();
     }
 
-    private void sendOrder() {//TODO may fail, may retry
+    //TODO may fail, may retry
+    private void sendOrder() {
+        String cardId = getCardId(getUserName());
         WebClient.create("http://localhost:8084").post()
-                .uri("/api/orders/{cardId}", getCardId(getUserName()))
+                .uri("/api/orders/{cardId}", cardId)
                 .header("User-Token", getUserToken(getUserName()))
                 .retrieve().toEntity(String.class).block();
         refreshCurrentTab.run();
@@ -333,7 +367,7 @@ public class MyWindow extends QWidget {
             JSONObject object = array.getJSONObject(i);
             result.add(OrderDTO.builder()
                     .orderId(object.getLong("orderId"))
-                    .orderDate(Date.valueOf(object.getString("orderDate")))
+                    .orderDate(Date.from(ZonedDateTime.parse(object.getString("orderDate"), DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()))
                     .orderStatus(object.getString("orderStatus"))
                     .totalAmount(object.getDouble("totalAmount"))
                     .basket(parseBasket(object.getJSONObject("basket")))
@@ -341,13 +375,38 @@ public class MyWindow extends QWidget {
         }
         return result;
     }
+    private static BasketDTO parseBasket2(JSONObject basket) {
+        List<ProductDTO> productsList = new ArrayList<>();
+        JSONArray products = basket.getJSONArray("products");
+        for (int i = 0; i < products.length(); i++) {
+            JSONObject product = products.getJSONObject(i);
+            ProductDTO productDTO = parseProduct(product);
+            if (productDTO.getProductId() == null) {
+                log.info("detected null id product in parseBasket2");
+                productsList.add(productDTO);
+            } else {
+                productsList.add(productDTO);
+            }
+        }
+        return BasketDTO.builder()
+                .basketId(basket.getLong("basketId"))
+                .basketStatus(basket.getString("basketStatus"))
+                .subtotalAmount(basket.getDouble("subtotalAmount"))
+                .products(productsList)
+                .build();
+    }
 
     private static BasketDTO parseBasket(JSONObject basket) {
         List<ProductDTO> productsList = new ArrayList<>();
         JSONArray products = basket.getJSONArray("products");
         for (int i = 0; i < products.length(); i++) {
             JSONObject product = products.getJSONObject(i);
-            productsList.add(parseProduct(product));
+            ProductDTO productDTO = parseProduct(product);
+            if (productDTO.getProductId() == null) {
+                log.info("blocked null id product");
+            } else {
+                productsList.add(productDTO);
+            }
         }
         return BasketDTO.builder()
                 .basketId(basket.getLong("basketId"))
@@ -392,12 +451,19 @@ public class MyWindow extends QWidget {
         ResponseEntity<String> response = basketMono.block();
         JSONObject body = new JSONObject(response.getBody());
         JSONObject cart = body.getJSONObject("data");
-        return parseBasket(cart);
+        return parseBasket2(cart);
     }
 
     private boolean changeRemoteBasket(Long productId, Integer amount) {
         BasketDTO cart = getRemoteBasket();
         int previousAmount = cart.getProducts().stream()
+                .filter(x -> {
+                    if (x.getProductId() == null) {
+                        log.info("blocked null id product");
+                        return false;
+                    }
+                    return true;
+                })
                 .filter(x -> x.getProductId().equals(productId))
                 .map(x -> x.getQuantity())
                 .findAny().orElse(0);
@@ -433,45 +499,45 @@ public class MyWindow extends QWidget {
     }
 
     private static void clearRemoteBaskets() {
-        {
-            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
-                    .get()
-                    .uri("/api/basket")
-                    .header("User-Token", getUserToken("John Doe"))
-                    .retrieve()
-                    .toEntity(String.class);
-            ResponseEntity<String> response = basketMono.block();
-            JSONObject body = new JSONObject(response.getBody());
-            JSONObject cart = body.getJSONObject("data");
-            BasketDTO johnsRemoteBasket = parseBasket(cart);
-            johnsRemoteBasket.getProducts().forEach(x -> {
-                WebClient.create("http://localhost:8084").delete()
-                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
-                        .header("User-Token", getUserToken("John Doe"))
-                        .retrieve()
-                        .toEntity(String.class)
-                        .block();
-            });
-        }
-        {
-            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
-                    .get()
-                    .uri("/api/basket")
-                    .header("User-Token", getUserToken("Alice Smith"))
-                    .retrieve()
-                    .toEntity(String.class);
-            ResponseEntity<String> response = basketMono.block();
-            JSONObject body = new JSONObject(response.getBody());
-            JSONObject cart = body.getJSONObject("data");
-            BasketDTO alicesRemoteBasket = parseBasket(cart);
-            alicesRemoteBasket.getProducts().forEach(x -> {
-                WebClient.create("http://localhost:8084").delete()
-                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
-                        .header("User-Token", getUserToken("Alice Smith"))
-                        .retrieve()
-                        .toEntity(String.class)
-                        .block();
-            });
-        }
+//        {
+//            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
+//                    .get()
+//                    .uri("/api/basket")
+//                    .header("User-Token", getUserToken("John Doe"))
+//                    .retrieve()
+//                    .toEntity(String.class);
+//            ResponseEntity<String> response = basketMono.block();
+//            JSONObject body = new JSONObject(response.getBody());
+//            JSONObject cart = body.getJSONObject("data");
+//            BasketDTO johnsRemoteBasket = parseBasket(cart);
+//            johnsRemoteBasket.getProducts().forEach(x -> {
+//                WebClient.create("http://localhost:8084").delete()
+//                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
+//                        .header("User-Token", getUserToken("John Doe"))
+//                        .retrieve()
+//                        .toEntity(String.class)
+//                        .block();
+//            });
+//        }
+//        {
+//            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
+//                    .get()
+//                    .uri("/api/basket")
+//                    .header("User-Token", getUserToken("Alice Smith"))
+//                    .retrieve()
+//                    .toEntity(String.class);
+//            ResponseEntity<String> response = basketMono.block();
+//            JSONObject body = new JSONObject(response.getBody());
+//            JSONObject cart = body.getJSONObject("data");
+//            BasketDTO alicesRemoteBasket = parseBasket(cart);
+//            alicesRemoteBasket.getProducts().forEach(x -> {
+//                WebClient.create("http://localhost:8084").delete()
+//                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
+//                        .header("User-Token", getUserToken("Alice Smith"))
+//                        .retrieve()
+//                        .toEntity(String.class)
+//                        .block();
+//            });
+//        }
     }
 }
