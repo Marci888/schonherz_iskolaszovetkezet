@@ -51,16 +51,16 @@ public class MyWindow extends QWidget {
 
         searchResultsTable = new QTableWidget(searchTab);
         searchTabLayout.addWidget(searchResultsTable);
-        searchResultsTable.setColumnCount(5);
-        searchResultsTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In stock", "In cart"));
+        searchResultsTable.setColumnCount(4);
+        searchResultsTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In cart"));
 
         totalLabel = new QLabel("Total: " + priceToString(0.0));
         cartTabLayout.addWidget(totalLabel);
 
         cartTable = new QTableWidget(cartTab);
         cartTabLayout.addWidget(cartTable);
-        cartTable.setColumnCount(5);
-        cartTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In stock", "In cart"));
+        cartTable.setColumnCount(4);
+        cartTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In cart"));
 
         QPushButton buyButton = new QPushButton("buy", cartTab);
         cartTabLayout.addWidget(buyButton);
@@ -80,33 +80,33 @@ public class MyWindow extends QWidget {
                 case "searchTab" -> setProductSpinboxTableContents(searchResults, searchResultsTable);
                 case "cartTab" -> {
                     BasketDTO basket = getBasket();
-                    setCartTabContents(basket);
+                    if (basket != null) {
+                        setCartTabContents(basket);
+                    }
                 }
                 case "ordersTab" -> {
                     List<OrderDTO> orders = getOrders();
-                    setOrdersTabContents(orders);
+                    if (orders != null) {
+                        setOrdersTabContents(orders);
+                    }
                 }
                 default ->
                     //TODO this is for debug purposes
                         throw new RuntimeException("refreshCurrentTab currentWidget has no match");
             }
         };
-        userComboBox.currentTextChanged.connect((String s) -> {
-            refreshCurrentTab.run();
-        });
+        userComboBox.currentTextChanged.connect((String s) -> refreshCurrentTab.run());
         tabWidget.currentChanged.connect(refreshCurrentTab::run);
         buyButton.clicked.connect(() -> {
             sendOrder();
-            boolean success = true;
-            if (success) {
-                setCartTabContents(null); //show empty cart
-            }
+            refreshCurrentTab.run();
         });
         searchButton.clicked.connect(() -> {
             String name = nameLineEdit.text();
             String category = categoryComboBox.currentText();
-            searchResults = queryProducts(name, category);
-            setProductSpinboxTableContents(searchResults, searchResultsTable);
+            if (queryProducts(name, category)) {
+                setSearchResultsTableContents(searchResults);
+            }
         });
     }
 
@@ -131,9 +131,7 @@ public class MyWindow extends QWidget {
             cartTable.setItem(i, 0, new QTableWidgetItem(product.getName()));
             cartTable.setItem(i, 1, new QTableWidgetItem(product.getCategory()));
             cartTable.setItem(i, 2, new QTableWidgetItem(priceToString(product.getPrice())));
-            cartTable.setItem(i, 3, new QTableWidgetItem(product.getQuantity().toString()));
             var spinBox = new QSpinBox(cartTable) {public int oldValue = 0;};
-            spinBox.setMaximum(product.getQuantity());
             if (cart != null) {
                 spinBox.setValue(cart.getProducts().stream()
                         .filter(x -> x.getProductId().equals(product.getProductId()))
@@ -151,7 +149,7 @@ public class MyWindow extends QWidget {
                     spinBox.oldValue = value;
                 }
             });
-            cartTable.setCellWidget(i, 5, spinBox);
+            cartTable.setCellWidget(i, 4, spinBox);
         }
     }
 
@@ -219,8 +217,8 @@ public class MyWindow extends QWidget {
     // GET api/products/category/{category}
     // GET api/products/contains/{contains}
     //an empty list will be displayed as no products
-    private ArrayList<ProductDTO> queryProducts(String name, String category) {
-        return new ArrayList<>();
+    private boolean queryProducts(String name, String category) {
+        return false;
     }
 
     // POST api/orders/{cardid}
