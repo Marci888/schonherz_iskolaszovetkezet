@@ -5,9 +5,16 @@ import hu.bme.aut.api.dto.OrderDTO;
 import hu.bme.aut.api.dto.ProductDTO;
 import io.qt.widgets.*;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class MyWindow extends QWidget {
@@ -53,6 +60,7 @@ public class MyWindow extends QWidget {
 
         searchResultsTable = new QTableWidget(searchTab);
         searchTabLayout.addWidget(searchResultsTable);
+        searchResultsTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);
         searchResultsTable.setColumnCount(4);
         searchResultsTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In cart"));
 
@@ -61,25 +69,28 @@ public class MyWindow extends QWidget {
 
         cartTable = new QTableWidget(cartTab);
         cartTabLayout.addWidget(cartTable);
+        cartTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);
         cartTable.setColumnCount(4);
         cartTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "In cart"));
 
         QPushButton buyButton = new QPushButton("buy", cartTab);
+        buyButton.setEnabled(false);
         cartTabLayout.addWidget(buyButton);
 
         ordersTable = new QTableWidget(ordersTab);
         ordersTabLayout.addWidget(ordersTable);
+        ordersTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);
         ordersTable.setColumnCount(4);
         ordersTable.setHorizontalHeaderLabels(List.of("Date", "Status", "Price", "Contents"));
 
-        Runnable refreshCurrentTab = () -> {
+        refreshCurrentTab = () -> {
             QWidget currentTab = tabWidget.currentWidget();
             if (currentTab == null) {
                 throw new IllegalStateException("There is no active tab.");
             }
             String currentTabName = currentTab.objectName();
             switch (currentTabName) {
-                case "searchTab" -> setSearchResultsTableContents(searchResults);
+                case "searchTab" -> refreshSearchResultsTable();
                 case "cartTab" -> setCartTabContents();
                 case "ordersTab" -> setOrdersTabContents();
                 default ->
@@ -89,17 +100,17 @@ public class MyWindow extends QWidget {
         };
         userComboBox.currentTextChanged.connect((String s) -> refreshCurrentTab.run());
         tabWidget.currentChanged.connect(refreshCurrentTab::run);
-        buyButton.clicked.connect(() -> {
-            sendOrder();
-            refreshCurrentTab.run();
-        });
+        buyButton.clicked.connect(this::sendOrder);
         searchButton.clicked.connect(() -> {
             String name = nameLineEdit.text();
             String category = categoryComboBox.currentText();
             searchProducts(name, category);
         });
+
+        clearRemoteBaskets();
     }
 
+    private final Runnable refreshCurrentTab;
     private final QTableWidget searchResultsTable;
     List<ProductDTO> searchResults = new ArrayList<>();
     private void setSearchResultsTableContents(List<ProductDTO> products) {
@@ -116,10 +127,13 @@ public class MyWindow extends QWidget {
                     .map(ProductDTO::getQuantity)
                     .findAny().orElse(0));
             spinBox.valueChanged.connect((Integer value) -> {
-                changeLocalBasket(product.getProductId(), value);
+                changeLocalBasket(product, value);
             });
-            searchResultsTable.setCellWidget(i, 4, spinBox);
+            searchResultsTable.setCellWidget(i, 3, spinBox);
         }
+    }
+    private void refreshSearchResultsTable() {
+        setSearchResultsTableContents(searchResults);
     }
 
     private final QTableWidget cartTable;
@@ -147,7 +161,7 @@ public class MyWindow extends QWidget {
                     .findAny().orElse(0));
             spinBox.oldValue = spinBox.getValue();
             spinBox.valueChanged.connect((Integer value) -> {
-                if (changeRemoteBasket(product.getProductId(), value)) {
+                if (!changeRemoteBasket(product.getProductId(), value)) {
                     spinBox.blockSignals(true);
                     spinBox.setValue(spinBox.oldValue);
                     spinBox.blockSignals(false);
@@ -155,7 +169,7 @@ public class MyWindow extends QWidget {
                     spinBox.oldValue = value;
                 }
             });
-            cartTable.setCellWidget(i, 4, spinBox);
+            cartTable.setCellWidget(i, 3, spinBox);
         }
     }
 
@@ -183,6 +197,7 @@ public class MyWindow extends QWidget {
 
         QTableWidget orderContentsTable = new QTableWidget(orderContentsDialog);
         dialogLayout.addWidget(orderContentsTable);
+        orderContentsTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);
         orderContentsTable.setColumnCount(5);
         orderContentsTable.setHorizontalHeaderLabels(List.of("Name", "Category", "Price", "Amount", "Total"));
         orderContentsTable.setRowCount(products.size());
@@ -216,53 +231,247 @@ public class MyWindow extends QWidget {
             return "YWxpY2VAZXhhbXBsZS5jb20mMg==";
         }
     }
+    private static final BasketDTO johnsCart = BasketDTO.builder()
+            .basketId(null)
+            .basketStatus(null)
+            .subtotalAmount(null)
+            .products(new ArrayList<>())
+            .build();
+    private static final BasketDTO alicesCart = BasketDTO.builder()
+            .basketId(null)
+            .basketStatus(null)
+            .subtotalAmount(null)
+            .products(new ArrayList<>())
+            .build();
 
     private static String priceToString(double price) {
         return "%.2f".formatted(price);
     }
 
-    // GET api/products
-    // GET api/products/category/{category}
-    // GET api/products/contains/{contains}
-    //an empty list will be displayed as no products
-    private void searchProducts(String name, String category) {
+    private void searchProducts(String name, String category) {//TODO may fail, may retry
+        List<ProductDTO> result = new ArrayList<>();
+        WebClient webClient = WebClient.create("http://localhost:8084");
+        if (name.isEmpty() && category.equals("<all>")) {
+            Mono<ResponseEntity<String>> productsMono = webClient.get()
+                    .uri("/api/products")
+                    .retrieve()
+                    .toEntity(String.class);
+            ResponseEntity<String> response = productsMono.block();
+            assert response != null;
+            JSONObject body = new JSONObject(response.getBody());
+            JSONArray data = body.getJSONArray("data");
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject object = data.getJSONObject(i);
+                result.add(parseProduct(object));
+            }
+        } else if (!name.isEmpty() && category.equals("<all>")) {
+            Mono<ResponseEntity<String>> productsMono = webClient.get()
+                    .uri("/api/products/contains/{contain}", name)
+                    .retrieve()
+                    .toEntity(String.class);
+            ResponseEntity<String> response = productsMono.block();
+            assert response != null;
+            JSONObject body = new JSONObject(response.getBody());
+            JSONArray data = body.getJSONArray("data");
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject object = data.getJSONObject(i);
+                result.add(parseProduct(object));
+            }
+        } else {
+            Mono<ResponseEntity<String>> productsMono = webClient.get()
+                    .uri("/api/products/category/{category}", category)
+                    .retrieve()
+                    .toEntity(String.class);
+            ResponseEntity<String> response = productsMono.block();
+            assert response != null;
+            JSONObject body = new JSONObject(response.getBody());
+            JSONArray data = body.getJSONArray("data");
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject object = data.getJSONObject(i);
+                result.add(parseProduct(object));
+            }
+            if (!name.isEmpty()) {
+                result = new ArrayList<>(result.stream()
+                        .filter(x -> x.getName().contains(name))
+                        .toList());
+            }
+        }
+
+        searchResults = result;
+        refreshSearchResultsTable();
     }
 
-    // POST api/orders/{cardid}
-    private void sendOrder() {
+    private static ProductDTO parseProduct(JSONObject product) {
+        return ProductDTO.builder()
+                .productId(product.isNull("productId") ? null : product.getLong("productId"))
+                .name(product.getString("name"))
+                .category(product.getString("category"))
+                .price(product.getDouble("price"))
+                .quantity(product.isNull("quantity") ? null : product.getInt("quantity"))
+                .build();
     }
 
-    // GET api/orders
-    //an empty list will be displayed as no orders
-    private ArrayList<OrderDTO> getOrders() {
-        return new ArrayList<>();
+    private void sendOrder() {//TODO may fail, may retry
+        WebClient.create("http://localhost:8084").post()
+                .uri("/api/orders/{cardId}", getCardId(getUserName()))
+                .header("User-Token", getUserToken(getUserName()))
+                .retrieve().toEntity(String.class).block();
+        refreshCurrentTab.run();
     }
 
-//    // GET api/basket
-//    //null will be displayed as an empty basket
-//    private BasketDTO getBasket() {
-//        return null;
-//    }
-//
-//    // DELETE
-//    // PUT
-//    private boolean changeBasket(Long productId, int newAmount) {
-//        return false;
-//    }
+    private List<OrderDTO> getOrders() {
+        Mono<ResponseEntity<String>> ordersMono = WebClient.create("http://localhost:8084").get()
+                .uri("/api/orders")
+                .header("User-Token", getUserToken(getUserName()))
+                .retrieve()
+                .toEntity(String.class);
+        ResponseEntity<String> response = ordersMono.block();
+        JSONObject body = new JSONObject(response.getBody());
+        JSONArray array = body.getJSONArray("data");
+        List<OrderDTO> result = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+            result.add(OrderDTO.builder()
+                    .orderId(object.getLong("orderId"))
+                    .orderDate(Date.valueOf(object.getString("orderDate")))
+                    .orderStatus(object.getString("orderStatus"))
+                    .totalAmount(object.getDouble("totalAmount"))
+                    .basket(parseBasket(object.getJSONObject("basket")))
+                    .build());
+        }
+        return result;
+    }
+
+    private static BasketDTO parseBasket(JSONObject basket) {
+        List<ProductDTO> productsList = new ArrayList<>();
+        JSONArray products = basket.getJSONArray("products");
+        for (int i = 0; i < products.length(); i++) {
+            JSONObject product = products.getJSONObject(i);
+            productsList.add(parseProduct(product));
+        }
+        return BasketDTO.builder()
+                .basketId(basket.getLong("basketId"))
+                .basketStatus(basket.getString("basketStatus"))
+                .subtotalAmount(basket.getDouble("subtotalAmount"))
+                .products(productsList)
+                .build();
+    }
 
     private BasketDTO getLocalBasket() {
-        return null;
+        if (getUserName().equals("John Doe")) {
+            return johnsCart;
+        }
+        return alicesCart;
     }
 
-    private void changeLocalBasket(Long productId, Integer amount) {
-
+    private void changeLocalBasket(ProductDTO product, Integer amount) {
+        BasketDTO cart = getLocalBasket();
+        Optional<ProductDTO> foundProduct = cart.getProducts().stream()
+                .filter(x -> x.getProductId().equals(product.getProductId()))
+                .findAny();
+        if (foundProduct.isEmpty()) {
+            cart.getProducts().add(ProductDTO.builder()
+                            .productId(product.getProductId())
+                            .name(product.getName())
+                            .price(product.getPrice())
+                            .category(product.getCategory())
+                            .quantity(amount)
+                            .build());
+        } else {
+            foundProduct.get().setQuantity(amount);
+        }
     }
 
-    private BasketDTO getRemoteBasket() {
-        return null;
+    private BasketDTO getRemoteBasket() {//TODO may fail. may be repeated.
+        Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
+                .get()
+                .uri("/api/basket")
+                .header("User-Token", getUserToken(getUserName()))
+                .retrieve()
+                .toEntity(String.class);
+        ResponseEntity<String> response = basketMono.block();
+        JSONObject body = new JSONObject(response.getBody());
+        JSONObject cart = body.getJSONObject("data");
+        return parseBasket(cart);
     }
 
     private boolean changeRemoteBasket(Long productId, Integer amount) {
-        return false;
+        BasketDTO cart = getRemoteBasket();
+        int previousAmount = cart.getProducts().stream()
+                .filter(x -> x.getProductId().equals(productId))
+                .map(x -> x.getQuantity())
+                .findAny().orElse(0);
+        if (amount == previousAmount) return true;
+        if (amount < previousAmount) {
+            WebClient.create("http://localhost:8084").delete()
+                    .uri("/api/basket/{productId}/{productQuantity}", productId.toString(), String.valueOf(previousAmount - amount))
+                    .header("User-Token", getUserToken(getUserName()))
+                    .retrieve()
+                    .toEntity(String.class)
+                    .block();
+            return true;
+        } else {
+            WebClient.create("http://localhost:8084").put()
+                    .uri("/api/basket/{productId}/{productQuantity}", productId.toString(), String.valueOf(amount - previousAmount))
+                    .header("User-Token", getUserToken(getUserName()))
+                    .retrieve()
+                    .toEntity(String.class)
+                    .block();
+            return true;
+        }
+    }
+
+    private void pushLocalBasket() {
+        clearRemoteBasket();
+        BasketDTO localCart = getLocalBasket();
+        localCart.getProducts().forEach(x -> changeRemoteBasket(x.getProductId(), x.getQuantity()));
+    }
+
+    private void clearRemoteBasket() {
+        BasketDTO remoteCart = getRemoteBasket();
+        remoteCart.getProducts().forEach(x -> changeRemoteBasket(x.getProductId(), 0)); //bit weird
+    }
+
+    private static void clearRemoteBaskets() {
+        {
+            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
+                    .get()
+                    .uri("/api/basket")
+                    .header("User-Token", getUserToken("John Doe"))
+                    .retrieve()
+                    .toEntity(String.class);
+            ResponseEntity<String> response = basketMono.block();
+            JSONObject body = new JSONObject(response.getBody());
+            JSONObject cart = body.getJSONObject("data");
+            BasketDTO johnsRemoteBasket = parseBasket(cart);
+            johnsRemoteBasket.getProducts().forEach(x -> {
+                WebClient.create("http://localhost:8084").delete()
+                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
+                        .header("User-Token", getUserToken("John Doe"))
+                        .retrieve()
+                        .toEntity(String.class)
+                        .block();
+            });
+        }
+        {
+            Mono<ResponseEntity<String>> basketMono = WebClient.create("http://localhost:8084")
+                    .get()
+                    .uri("/api/basket")
+                    .header("User-Token", getUserToken("Alice Smith"))
+                    .retrieve()
+                    .toEntity(String.class);
+            ResponseEntity<String> response = basketMono.block();
+            JSONObject body = new JSONObject(response.getBody());
+            JSONObject cart = body.getJSONObject("data");
+            BasketDTO alicesRemoteBasket = parseBasket(cart);
+            alicesRemoteBasket.getProducts().forEach(x -> {
+                WebClient.create("http://localhost:8084").delete()
+                        .uri("/api/basket/{productId}/{productQuantity}", x.getProductId().toString(), x.getQuantity().toString())
+                        .header("User-Token", getUserToken("Alice Smith"))
+                        .retrieve()
+                        .toEntity(String.class)
+                        .block();
+            });
+        }
     }
 }
