@@ -7,7 +7,7 @@ Csapattagok Neptun kóddal:
 - Sölétromos Benedek AFXX34
 - Szabó-Feltóthy Pál (YQ9D8Q)
 
-Bemutató videó URL: 
+Bemutató videó URL: https://drive.google.com/file/d/15UZbbdJPbJ713gSPiaQ2hZEU1gI17xo5/view?usp=sharing
 (Ugye minden olyan dolog szerepel benne a kiírásnak megfelelően, amire pontot szeretnétek kapni?)
 
 **Pontot érő technológiák**
